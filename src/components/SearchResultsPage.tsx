@@ -53,6 +53,7 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
 
   const handlePageChange = (page: number) => {
     fetchFacilities(currentFilters, page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const sportColors: Record<string, string> = {
@@ -62,6 +63,40 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
     '수영': '#42A5F5',
     '농구': '#AB47BC',
     '테니스': '#66BB6A',
+  };
+
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(totalCount / 10);
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      // 전체 페이지가 5개 이하면 모두 표시
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // 현재 페이지 기준으로 앞뒤 2개씩 표시
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, currentPage + 2);
+
+      // 시작이 1에 가까우면 끝을 늘림
+      if (currentPage <= 3) {
+        endPage = maxPagesToShow;
+      }
+
+      // 끝이 마지막에 가까우면 시작을 줄임
+      if (currentPage >= totalPages - 2) {
+        startPage = totalPages - maxPagesToShow + 1;
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+
+    return pages;
   };
 
   return (
@@ -192,28 +227,68 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
             )}
 
             {/* Pagination */}
-            <div className="flex items-center justify-center gap-2">
-              <button className="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] transition-colors">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              
-              {[1, 2, 3, 4, 5].map(page => (
+            {!loading && !error && totalPages > 0 && (
+              <div className="flex items-center justify-center gap-2">
+                {/* 이전 페이지 */}
                 <button
-                  key={page}
-                  className={`w-10 h-10 rounded-lg transition-colors ${
-                    page === 1 
-                      ? 'bg-[#16E0B4] text-white' 
-                      : 'bg-white border-2 border-[#E1E8ED] hover:border-[#16E0B4]'
-                  }`}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {page}
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
-              ))}
-              
-              <button className="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] transition-colors">
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
+
+                {/* 첫 페이지 */}
+                {currentPage > 3 && totalPages > 5 && (
+                  <>
+                    <button
+                      onClick={() => handlePageChange(1)}
+                      className="w-10 h-10 rounded-lg transition-colors bg-white border-2 border-[#E1E8ED] hover:border-[#16E0B4]"
+                    >
+                      1
+                    </button>
+                    {currentPage > 4 && <span className="px-2">...</span>}
+                  </>
+                )}
+
+                {/* 페이지 번호들 */}
+                {getPageNumbers().map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`w-10 h-10 rounded-lg transition-colors ${
+                      page === currentPage
+                        ? 'bg-[#16E0B4] text-white'
+                        : 'bg-white border-2 border-[#E1E8ED] hover:border-[#16E0B4]'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                {/* 마지막 페이지 */}
+                {currentPage < totalPages - 2 && totalPages > 5 && (
+                  <>
+                    {currentPage < totalPages - 3 && <span className="px-2">...</span>}
+                    <button
+                      onClick={() => handlePageChange(totalPages)}
+                      className="w-10 h-10 rounded-lg transition-colors bg-white border-2 border-[#E1E8ED] hover:border-[#16E0B4]"
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
+
+                {/* 다음 페이지 */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
