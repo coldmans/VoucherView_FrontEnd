@@ -3,6 +3,7 @@ import { FilterBar, SearchFilters } from './FilterBar';
 import { FacilityCard } from './FacilityCard';
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { getFacilityList, FacilityDto } from '../api';
+import { getCurrentPosition } from '../utils/geolocation';
 
 interface SearchResultsPageProps {
   onNavigate?: (page: string) => void;
@@ -54,6 +55,29 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
   const handlePageChange = (page: number) => {
     fetchFacilities(currentFilters, page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSortChange = async (sortBy: string) => {
+    // 거리순 정렬일 때 위치 정보가 필요
+    if (sortBy === 'distance') {
+      try {
+        setLoading(true);
+        const position = await getCurrentPosition();
+        const updatedFilters = {
+          ...currentFilters,
+          sortBy,
+          lat: position.lng, // 백엔드에서 반대로 받음
+          lng: position.lat,
+        };
+        fetchFacilities(updatedFilters, 1);
+      } catch (error: any) {
+        setLoading(false);
+        alert(error.message || '위치 정보를 가져올 수 없어 거리순 정렬을 사용할 수 없습니다.');
+      }
+    } else {
+      const updatedFilters = { ...currentFilters, sortBy };
+      fetchFacilities(updatedFilters, 1);
+    }
   };
 
   const sportColors: Record<string, string> = {
@@ -174,12 +198,14 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
               <p className="text-[#8B9DA9] text-sm md:text-base">검색된 시설 <strong className="text-[#0D1B2A]">{totalCount}개</strong></p>
               <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
                 <span className="text-[#8B9DA9] text-sm md:text-base">정렬:</span>
-                <select className="flex-1 md:flex-none px-3 md:px-4 py-2 bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] focus:border-[#16E0B4] focus:outline-none cursor-pointer text-sm md:text-base">
-                  <option>추천순</option>
-                  <option>평점 높은순</option>
-                  <option>리뷰 많은순</option>
-                  <option>가격 낮은순</option>
-                  <option>거리 가까운순</option>
+                <select
+                  value={currentFilters.sortBy || 'rating'}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="flex-1 md:flex-none px-3 md:px-4 py-2 bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] focus:border-[#16E0B4] focus:outline-none cursor-pointer text-sm md:text-base"
+                >
+                  <option value="rating">평점 높은순</option>
+                  <option value="distance">거리 가까운순</option>
+                  <option value="name">이름순</option>
                 </select>
               </div>
             </div>

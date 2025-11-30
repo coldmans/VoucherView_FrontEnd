@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Trophy, DollarSign, Calendar, Clock, ParkingCircle, Shirt, Sparkles, X, ChevronDown, Search, ChevronUp, Locate } from 'lucide-react';
+import { MapPin, X, ChevronDown, Search, ChevronUp } from 'lucide-react';
 import { getFilterMetadata, getCitiesByProvince, FacilitySearchRequest } from '../api';
 import { getCurrentPosition, GeolocationPosition } from '../utils/geolocation';
 
@@ -18,11 +18,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({ resultCount = 0, onSearch,
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedSport, setSelectedSport] = useState('');
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [userLocation, setUserLocation] = useState<GeolocationPosition | null>(null);
-  const [locationLoading, setLocationLoading] = useState(false);
 
   // 메타데이터
   const [provinces, setProvinces] = useState<string[]>([]);
@@ -63,27 +61,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({ resultCount = 0, onSearch,
     }
   }, [selectedCity]);
 
-  const handleGetLocation = async () => {
-    setLocationLoading(true);
-    try {
-      const position = await getCurrentPosition();
-      setUserLocation(position);
-      console.log('현재 위치:', position);
-    } catch (error: any) {
-      console.error('위치 가져오기 실패:', error);
-      alert(error.message || '위치 정보를 가져올 수 없습니다.');
-    } finally {
-      setLocationLoading(false);
-    }
-  };
-
   const handleReset = () => {
     setSelectedCity('');
     setSelectedDistrict('');
     setSelectedSport('');
     setSearchKeyword('');
     setUserLocation(null);
-    setShowAdvancedFilters(false);
     onSearch?.({});
   };
 
@@ -93,9 +76,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({ resultCount = 0, onSearch,
       ctNm: selectedCity || undefined,
       ctDetailNm: selectedDistrict || undefined,
       mainSport: selectedSport || undefined,
-      lat: userLocation?.lat,
-      lng: userLocation?.lng,
-      radius: userLocation ? 5000 : undefined, // 위치가 있으면 5km 반경 검색
+      lat: userLocation?.lng,
+      lng: userLocation?.lat,
     };
     console.log('검색 실행:', filters);
     onSearch?.(filters);
@@ -211,22 +193,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({ resultCount = 0, onSearch,
 
             <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
               <button
-                onClick={handleGetLocation}
-                disabled={locationLoading}
-                className="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 border-2 border-[#16E0B4] text-[#16E0B4] rounded-xl hover:bg-[#16E0B4] hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                title="현재 위치를 기준으로 주변 시설을 검색합니다"
-              >
-                <Locate className="w-4 h-4 md:w-5 md:h-5" />
-                {locationLoading ? '위치 확인 중...' : userLocation ? '위치 재설정' : '내 위치'}
-              </button>
-              <button
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 border-2 border-[#0D1B2A] text-[#0D1B2A] rounded-xl hover:bg-[#0D1B2A] hover:text-white transition-colors text-sm md:text-base"
-              >
-                {showAdvancedFilters ? '간단히 보기' : '상세 필터 +'}
-              </button>
-
-              <button
                 onClick={handleReset}
                 className="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 bg-[#E1E8ED] text-[#8B9DA9] rounded-xl hover:bg-[#d1d8dd] transition-colors flex items-center gap-2 justify-center text-sm md:text-base"
               >
@@ -244,90 +210,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({ resultCount = 0, onSearch,
               </button>
             </div>
           </div>
-
-          {/* Advanced Filters */}
-          {showAdvancedFilters && (
-            <div className="mt-4 md:mt-6 p-4 md:p-6 bg-[#F5F7FA] rounded-2xl border-2 border-[#E1E8ED]">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {/* Price Range */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-[#16E0B4]" />
-                  <label className="font-semibold text-sm md:text-base">가격대</label>
-                </div>
-                <div className="grid grid-cols-2 md:flex gap-2">
-                  {['3만원 이하', '3-5만원', '5-10만원', '10만원 이상'].map(price => (
-                    <button
-                      key={price}
-                      className="flex-1 px-2 md:px-4 py-2 bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] hover:bg-[#16E0B4]/5 transition-colors text-xs md:text-sm"
-                    >
-                      {price}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Time Slot */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="w-4 h-4 md:w-5 md:h-5 text-[#16E0B4]" />
-                  <label className="font-semibold text-sm md:text-base">시간대</label>
-                </div>
-                <div className="grid grid-cols-2 md:flex gap-2">
-                  {['평일 오전', '평일 오후', '주말 오전', '주말 오후'].map(time => (
-                    <button
-                      key={time}
-                      className="flex-1 px-2 md:px-4 py-2 bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] hover:bg-[#16E0B4]/5 transition-colors text-xs md:text-sm"
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Facilities */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-[#16E0B4]" />
-                  <label className="font-semibold text-sm md:text-base">제공 서비스</label>
-                </div>
-                <div className="flex gap-2">
-                  {[
-                    { icon: ParkingCircle, label: '주차' },
-                    { icon: Shirt, label: '락커룸' },
-                    { icon: Sparkles, label: '샤워실' }
-                  ].map(({ icon: Icon, label }) => (
-                    <button
-                      key={label}
-                      className="flex-1 px-2 md:px-4 py-2 bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] hover:bg-[#16E0B4]/5 transition-colors flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm"
-                    >
-                      <Icon className="w-3 h-3 md:w-4 md:h-4" />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Level */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-4 h-4 md:w-5 md:h-5 text-[#16E0B4]" />
-                  <label className="font-semibold text-sm md:text-base">난이도</label>
-                </div>
-                <div className="flex gap-2">
-                  {['초급', '중급', '고급', '전체'].map(level => (
-                    <button
-                      key={level}
-                      className="flex-1 px-2 md:px-4 py-2 bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] hover:bg-[#16E0B4]/5 transition-colors text-xs md:text-sm"
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-          )}
         </div>
         )}
       </div>
