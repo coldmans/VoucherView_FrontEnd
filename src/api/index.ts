@@ -26,6 +26,15 @@ export {
   getReviewsByUser,
 } from './reviews';
 
+// Favorite API
+export {
+  addFavorite,
+  removeFavorite,
+  checkFavoriteStatus,
+  getMyFavorites,
+  getFavoriteCount,
+} from './favorites';
+
 // Re-export types
 export type * from '../types/api';
 

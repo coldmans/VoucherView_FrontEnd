@@ -24,7 +24,9 @@ export const getFacilityList = async (
     ...params?.searchRequest,
   };
 
-  return apiClient.get<FacilityListResponse>(API_ENDPOINTS.FACILITIES, queryParams);
+  // 토큰이 있으면 인증 헤더 포함, 없으면 제외 (선택적 인증)
+  const hasToken = !!localStorage.getItem('token');
+  return apiClient.get<FacilityListResponse>(API_ENDPOINTS.FACILITIES, queryParams, hasToken);
 };
 
 /**
@@ -35,7 +37,9 @@ export const getFacilityList = async (
 export const getFacilityById = async (
   facilityId: number
 ): Promise<FacilityDto> => {
-  return apiClient.get<FacilityDto>(API_ENDPOINTS.FACILITY_BY_ID(facilityId));
+  // 토큰이 있으면 인증 헤더 포함, 없으면 제외 (선택적 인증)
+  const hasToken = !!localStorage.getItem('token');
+  return apiClient.get<FacilityDto>(API_ENDPOINTS.FACILITY_BY_ID(facilityId), undefined, hasToken);
 };
 
 /**

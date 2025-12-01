@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { MapPin, Phone, Star, Lock, AlertCircle, ChevronLeft, ChevronRight, Calendar, Users } from 'lucide-react';
 import { getFacilityById, getFacilityCourses, FacilityDto, CourseDto } from '../api';
 import { ReviewSection } from './ReviewSection';
+import { NaverMap } from './NaverMap';
 
-interface FacilityDetailPageProps {
-  facilityId?: number;
-  onNavigate?: (page: string, facilityId?: number) => void;
-}
-
-export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ facilityId = 1, onNavigate }) => {
+export const FacilityDetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const facilityId = id ? parseInt(id) : 1;
   const [activeTab, setActiveTab] = useState('courses');
   const [facility, setFacility] = useState<FacilityDto | null>(null);
   const [courses, setCourses] = useState<CourseDto[]>([]);
@@ -176,6 +175,7 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ facility
           <div className="flex gap-4 md:gap-8 min-w-max md:min-w-0">
             {[
               { id: 'courses', label: '강좌 정보' },
+              { id: 'location', label: '위치' },
               { id: 'reviews', label: '리뷰' }
             ].map(tab => (
               <button
@@ -357,6 +357,27 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ facility
                     )}
                   </>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'location' && facility && (
+              <div>
+                <h3 className="mb-4">시설 위치</h3>
+                <NaverMap
+                  latitude={facility.latitude}
+                  longitude={facility.longitude}
+                  facilityName={facility.name}
+                  address={facility.address}
+                />
+                <div className="mt-4 p-4 bg-[#F5F7FA] rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-[#16E0B4] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[#0D1B2A] font-medium mb-1">주소</p>
+                      <p className="text-[#8B9DA9]">{facility.address}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

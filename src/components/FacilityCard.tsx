@@ -1,29 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MapPin, ParkingCircle, Shirt, Sparkles, Heart } from 'lucide-react';
 
 interface FacilityCardProps {
+  facilityId: number;
   name: string;
   address: string;
   sport: string;
   rating: number;
   reviewCount: number;
+  isFavorite: boolean;
   price?: string;
   time?: string;
   color: string;
   facilities: string[];
   onClick?: () => void;
+  onFavoriteToggle?: (facilityId: number, isFavorite: boolean) => void;
 }
 
 export const FacilityCard: React.FC<FacilityCardProps> = ({
+  facilityId,
   name,
   address,
   sport,
   rating,
   reviewCount,
+  isFavorite,
   color,
   facilities,
-  onClick
+  onClick,
+  onFavoriteToggle
 }) => {
+  const [localFavorite, setLocalFavorite] = useState(isFavorite);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newFavoriteState = !localFavorite;
+    setLocalFavorite(newFavoriteState);
+    onFavoriteToggle?.(facilityId, newFavoriteState);
+  };
   const facilityIcons: { [key: string]: any } = {
     '주차': ParkingCircle,
     '락커룸': Shirt,
@@ -47,13 +61,15 @@ export const FacilityCard: React.FC<FacilityCardProps> = ({
               <span className="font-semibold">{rating}</span>
               <span className="text-[#8B9DA9]">({reviewCount})</span>
             </div>
-            <button 
+            <button
               className="w-8 h-8 bg-[#F5F7FA] rounded-full flex items-center justify-center hover:bg-[#e5e7ea] transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
+              onClick={handleFavoriteClick}
             >
-              <Heart className="w-4 h-4 text-[#8B9DA9]" />
+              <Heart
+                className={`w-4 h-4 transition-colors ${
+                  localFavorite ? 'text-red-500 fill-red-500' : 'text-[#8B9DA9]'
+                }`}
+              />
             </button>
           </div>
         </div>

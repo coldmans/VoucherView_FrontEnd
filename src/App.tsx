@@ -1,67 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { HomePage } from './components/HomePage';
 import { SearchResultsPage } from './components/SearchResultsPage';
 import { FacilityDetailPage } from './components/FacilityDetailPage';
 import { LoginPage } from './components/LoginPage';
 import { MyPage } from './components/MyPage';
-
-type Page = 'home' | 'search' | 'detail' | 'login' | 'mypage';
+import { CommunityPage } from './components/CommunityPage';
+import { PostDetailPage } from './components/PostDetailPage';
+import { PostWritePage } from './components/PostWritePage';
 
 export default function App() {
-  // URL에 code 파라미터가 있으면 login 페이지로 시작
-  const urlParams = new URLSearchParams(window.location.search);
-  const hasCode = urlParams.has('code');
-
-  const [currentPage, setCurrentPage] = useState<Page>(hasCode ? 'login' : 'home');
-  const [selectedFacilityId, setSelectedFacilityId] = useState<number>(1);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-
-  // 초기 로그인 상태 확인
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
-
-  // 페이지 변경 시마다 로그인 상태 재확인
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, [currentPage]);
-
-  const handleNavigate = (page: string, facilityId?: number) => {
-    setCurrentPage(page as Page);
-    if (facilityId !== undefined) {
-      setSelectedFacilityId(facilityId);
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleLogin = () => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    setCurrentPage('home');
-  };
-
   return (
-    <div className="min-h-screen bg-white">
-      <Header
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-        isLoggedIn={isLoggedIn}
-        onLogout={handleLogout}
-      />
-      
-      {currentPage === 'home' && <HomePage onNavigate={handleNavigate} />}
-      {currentPage === 'search' && <SearchResultsPage onNavigate={handleNavigate} />}
-      {currentPage === 'detail' && <FacilityDetailPage facilityId={selectedFacilityId} onNavigate={handleNavigate} />}
-      {currentPage === 'login' && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />}
-      {currentPage === 'mypage' && <MyPage />}
+    <BrowserRouter>
+      <div className="min-h-screen bg-white">
+        <Header />
+
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/search" element={<SearchResultsPage />} />
+          <Route path="/facility/:id" element={<FacilityDetailPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/community/:postId" element={<PostDetailPage />} />
+          <Route path="/community/write" element={<PostWritePage />} />
+          <Route path="/community/edit/:postId" element={<PostWritePage />} />
+        </Routes>
 
       {/* Footer */}
       <footer className="bg-[#0D1B2A] text-white py-8 md:py-12">
@@ -104,6 +69,7 @@ export default function App() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </BrowserRouter>
   );
 }

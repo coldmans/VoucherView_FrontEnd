@@ -6,6 +6,8 @@ export interface FacilityDto {
   phoneNumber: string;
   mainSport: string;
   averRating: number;
+  reviewCount: number;
+  isFavorite: boolean;
   latitude: number;
   longitude: number;
 }

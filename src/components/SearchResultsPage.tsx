@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FilterBar, SearchFilters } from './FilterBar';
 import { FacilityCard } from './FacilityCard';
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
-import { getFacilityList, FacilityDto } from '../api';
+import { getFacilityList, FacilityDto, addFavorite, removeFavorite } from '../api';
 import { getCurrentPosition } from '../utils/geolocation';
+import { Toast } from './Toast';
 
-interface SearchResultsPageProps {
-  onNavigate?: (page: string, facilityId?: number) => void;
-}
-
-export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate }) => {
+export const SearchResultsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [showSidebar, setShowSidebar] = useState(true);
   const [facilities, setFacilities] = useState<FacilityDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,6 +18,9 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
   const [currentFilters, setCurrentFilters] = useState<SearchFilters>({});
   const [selectedRadius, setSelectedRadius] = useState<number | undefined>(undefined);
   const [selectedMinRating, setSelectedMinRating] = useState<number | undefined>(undefined);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   const fetchFacilities = async (filters: SearchFilters, page: number = 1) => {
     try {
@@ -125,6 +127,32 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
       minRating,
     };
     fetchFacilities(updatedFilters, 1);
+  };
+
+  const handleFavoriteToggle = async (facilityId: number, isFavorite: boolean) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setToastMessage('로그인이 필요한 기능입니다.');
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await addFavorite(facilityId);
+        setToastMessage('찜 목록에 추가되었습니다.');
+      } else {
+        await removeFavorite(facilityId);
+        setToastMessage('찜 목록에서 제거되었습니다.');
+      }
+      setToastType('success');
+      setShowToast(true);
+    } catch (error: any) {
+      setToastMessage(error.message || '찜 처리 중 오류가 발생했습니다.');
+      setToastType('error');
+      setShowToast(true);
+    }
   };
 
   const sportColors: Record<string, string> = {
@@ -295,14 +323,17 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
                 {facilities.map((facility) => (
                   <FacilityCard
                     key={facility.facilityId}
+                    facilityId={facility.facilityId}
                     name={facility.name}
                     address={facility.address}
                     sport={facility.mainSport}
                     rating={facility.averRating}
-                    reviewCount={0}
+                    reviewCount={facility.reviewCount}
+                    isFavorite={facility.isFavorite}
                     color={sportColors[facility.mainSport] || '#8B9DA9'}
                     facilities={[]}
-                    onClick={() => onNavigate?.('detail', facility.facilityId)}
+                    onClick={() => navigate(`/facility/${facility.facilityId}`)}
+                    onFavoriteToggle={handleFavoriteToggle}
                   />
                 ))}
               </div>
@@ -374,6 +405,15 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 };

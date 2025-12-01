@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, MessageCircle } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 import { Toast } from './Toast';
 import { getUserIdFromToken } from '../utils/jwt';
 
-interface LoginPageProps {
-  onNavigate?: (page: string) => void;
-  onLogin?: () => void;
-}
-
-export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin }) => {
+export const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
   const [showToast, setShowToast] = useState(false);
   useEffect(() => {
     console.log('LoginPage useEffect 실행됨');
@@ -61,16 +58,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin }) => 
           if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`);
           }
-          return res.text();
+          return res.json();
         })
-        .then((jwt) => {
-          console.log('JWT 토큰 받음:', jwt);
+        .then((data) => {
+          console.log('JWT 응답 받음:', data);
 
-          // 3. JWT를 localStorage에 저장
-          localStorage.setItem('token', jwt);
+          // 3. JWT와 닉네임을 localStorage에 저장
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('nickname', data.nickname);
 
           // 4. JWT에서 userId 추출하여 저장
-          const userId = getUserIdFromToken(jwt);
+          const userId = getUserIdFromToken(data.token);
           if (userId) {
             localStorage.setItem('userId', userId.toString());
             console.log('userId 저장 완료:', userId);
@@ -78,10 +76,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin }) => 
             console.warn('JWT에서 userId를 추출할 수 없습니다.');
           }
 
-          console.log('로그인 성공! 토큰 저장 완료');
+          console.log('로그인 성공! 토큰 및 닉네임 저장 완료');
 
           // 5. 로그인 상태 업데이트
-          onLogin?.();
+          // Login successful;
 
           // 6. 토스트 알림 표시
           setShowToast(true);
@@ -89,7 +87,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin }) => 
           // 7. 잠시 후 홈으로 이동
           setTimeout(() => {
             window.history.replaceState({}, '', '/');
-            onNavigate?.('home');
+            navigate('/');
           }, 1500);
         })
         .catch((err) => {

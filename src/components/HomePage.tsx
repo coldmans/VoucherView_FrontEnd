@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Calendar, DollarSign, Trophy, Dumbbell, Volleyball, SwatchBook, Users, Bike, Activity } from 'lucide-react';
 import { getFacilityList, FacilityDto } from '../api';
 
-interface HomePageProps {
-  onNavigate?: (page: string, facilityId?: number) => void;
-}
-
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
+export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [featuredFacilities, setFeaturedFacilities] = useState<FacilityDto[]>([]);
 
   useEffect(() => {
@@ -50,7 +48,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 강력한 필터로 원하는 시설을 빠르게 검색하세요
               </p>
               <button 
-                onClick={() => onNavigate?.('search')}
+                onClick={() => navigate('/search')}
                 className="flex items-center gap-2 md:gap-3 px-6 md:px-8 py-3 md:py-4 bg-[#16E0B4] text-[#0D1B2A] rounded-xl hover:bg-[#14c9a0] transition-all shadow-lg hover:shadow-xl w-full md:w-auto justify-center"
               >
                 <Search className="w-5 h-5 md:w-6 md:h-6" />
@@ -83,7 +81,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   우리 아이가 다닐 수 있는 가까운 시설만 빠르게 확인할 수 있습니다.
                 </p>
                 <button 
-                  onClick={() => onNavigate?.('search')}
+                  onClick={() => navigate('/search')}
                   className="px-4 md:px-6 py-2 md:py-3 bg-[#0D1B2A] text-white rounded-lg hover:bg-[#1a2f42] transition-colors w-full md:w-auto text-sm md:text-base"
                 >
                   지역별 검색 시작하기
@@ -106,7 +104,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             {sports.map((sport, index) => (
               <button
                 key={index}
-                onClick={() => onNavigate?.('search')}
+                onClick={() => navigate('/search')}
                 className="group p-4 md:p-8 bg-[#F5F7FA] rounded-2xl hover:shadow-xl transition-all hover:-translate-y-1"
               >
                 <div 
@@ -131,7 +129,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <p className="text-[#8B9DA9] text-sm md:text-base">많은 학부모님들이 선택한 시설입니다</p>
             </div>
             <button 
-              onClick={() => onNavigate?.('search')}
+              onClick={() => navigate('/search')}
               className="px-4 md:px-6 py-2 md:py-3 border-2 border-[#0D1B2A] text-[#0D1B2A] rounded-lg hover:bg-[#0D1B2A] hover:text-white transition-colors text-sm md:text-base w-full md:w-auto"
             >
               전체 보기
@@ -144,7 +142,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 <div
                   key={facility.facilityId}
                   className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow cursor-pointer border-2 border-[#E1E8ED] hover:border-[#16E0B4] p-6"
-                  onClick={() => onNavigate?.('detail', facility.facilityId)}
+                  onClick={() => navigate(`/facility/${facility.facilityId}`)}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="inline-block px-3 py-1 bg-[#16E0B4]/10 text-[#16E0B4] rounded-full">
