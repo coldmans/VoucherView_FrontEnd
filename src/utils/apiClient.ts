@@ -29,13 +29,22 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    requireAuth: boolean = false
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    const headers = {
+    const headers: HeadersInit = {
       ...this.defaultHeaders,
       ...options.headers,
     };
+
+    // JWT 토큰이 필요한 경우 Authorization 헤더 추가
+    if (requireAuth) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+      }
+    }
 
     try {
       const response = await fetch(url, {
@@ -45,14 +54,45 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+
+        // 에러 메시지 추출 (다양한 형식 지원)
+        const errorMessage =
+          errorData?.message ||
+          errorData?.error ||
+          errorData?.msg ||
+          `HTTP error! status: ${response.status}`;
+
         throw new ApiError(
-          errorData?.message || `HTTP error! status: ${response.status}`,
+          errorMessage,
           response.status,
           errorData
         );
       }
 
-      return await response.json();
+      // 204 No Content 응답 처리
+      if (response.status === 204) {
+        return undefined as T;
+      }
+
+      // Content-Length가 0이거나 응답 본문이 비어있는 경우 처리
+      const contentLength = response.headers.get('Content-Length');
+      if (contentLength === '0') {
+        return undefined as T;
+      }
+
+      // 응답 본문이 있는지 확인
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        return undefined as T;
+      }
+
+      // JSON 파싱 시도
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        // JSON 파싱 실패 시 텍스트 그대로 반환
+        return text as T;
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -63,7 +103,7 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+  async get<T>(endpoint: string, params?: Record<string, any>, requireAuth: boolean = false): Promise<T> {
     const queryString = params
       ? '?' +
         Object.entries(params)
@@ -77,27 +117,27 @@ class ApiClient {
 
     return this.request<T>(`${endpoint}${queryString}`, {
       method: 'GET',
-    });
+    }, requireAuth);
   }
 
-  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown, requireAuth: boolean = false): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
-    });
+    }, requireAuth);
   }
 
-  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown, requireAuth: boolean = false): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
-    });
+    }, requireAuth);
   }
 
-  async delete<T>(endpoint: string): Promise<T> {
+  async delete<T>(endpoint: string, requireAuth: boolean = false): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'DELETE',
-    });
+    }, requireAuth);
   }
 
   setBaseUrl(url: string) {

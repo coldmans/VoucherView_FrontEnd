@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Star, Lock, AlertCircle, ChevronLeft, ChevronRight, Calendar, Users } from 'lucide-react';
 import { getFacilityById, getFacilityCourses, FacilityDto, CourseDto } from '../api';
+import { ReviewSection } from './ReviewSection';
 
 interface FacilityDetailPageProps {
   facilityId?: number;
@@ -165,19 +166,6 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ facility
               <div className="flex items-center gap-2 text-[#8B9DA9] mb-2">
                 <Phone className="w-5 h-5" />
                 <span>{facility.phoneNumber}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Location Info */}
-          <div className="p-6 bg-[#F5F7FA] rounded-2xl">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#16E0B4]/20 rounded-xl flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-[#16E0B4]" />
-              </div>
-              <div>
-                <p className="text-[#8B9DA9] text-sm">위치 좌표</p>
-                <p className="font-semibold">위도: {facility.latitude.toFixed(6)}, 경도: {facility.longitude.toFixed(6)}</p>
               </div>
             </div>
           </div>
@@ -373,32 +361,7 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ facility
             )}
 
             {activeTab === 'reviews' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h3>리뷰</h3>
-                </div>
-
-                {/* Login Required Banner */}
-                <div className="mb-6 p-6 bg-[#FFF3E0] border-2 border-[#FFA726] rounded-2xl">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-[#FFA726] rounded-xl flex items-center justify-center flex-shrink-0">
-                      <Lock className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="mb-2">리뷰 기능은 개발 중입니다</h4>
-                      <p className="text-[#8B9DA9] mb-4">
-                        별점, 리뷰 작성 기능은 현재 백엔드 개발 중입니다.
-                        곧 추가될 예정이니 조금만 기다려주세요!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Placeholder Review List */}
-                <div className="text-center py-12 border-2 border-dashed border-[#E1E8ED] rounded-2xl">
-                  <p className="text-[#8B9DA9]">리뷰 기능이 추가되면 여기에 리뷰 목록이 표시됩니다.</p>
-                </div>
-              </div>
+              <ReviewSection facilityId={facilityId} />
             )}
           </div>
 

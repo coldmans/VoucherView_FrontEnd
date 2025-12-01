@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Lock, Mail, MessageCircle } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 import { Toast } from './Toast';
+import { getUserIdFromToken } from '../utils/jwt';
 
 interface LoginPageProps {
   onNavigate?: (page: string) => void;
@@ -68,15 +69,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin }) => 
           // 3. JWT를 localStorage에 저장
           localStorage.setItem('token', jwt);
 
+          // 4. JWT에서 userId 추출하여 저장
+          const userId = getUserIdFromToken(jwt);
+          if (userId) {
+            localStorage.setItem('userId', userId.toString());
+            console.log('userId 저장 완료:', userId);
+          } else {
+            console.warn('JWT에서 userId를 추출할 수 없습니다.');
+          }
+
           console.log('로그인 성공! 토큰 저장 완료');
 
-          // 4. 로그인 상태 업데이트
+          // 5. 로그인 상태 업데이트
           onLogin?.();
 
-          // 5. 토스트 알림 표시
+          // 6. 토스트 알림 표시
           setShowToast(true);
 
-          // 6. 잠시 후 홈으로 이동
+          // 7. 잠시 후 홈으로 이동
           setTimeout(() => {
             window.history.replaceState({}, '', '/');
             onNavigate?.('home');

@@ -16,6 +16,16 @@ export {
   getCitiesByProvince,
 } from './metadata';
 
+// Review API
+export {
+  createReview,
+  getReviewsByFacility,
+  getFacilityRating,
+  updateReview,
+  deleteReview,
+  getReviewsByUser,
+} from './reviews';
+
 // Re-export types
 export type * from '../types/api';
 

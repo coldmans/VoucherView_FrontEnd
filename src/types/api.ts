@@ -93,3 +93,36 @@ export interface FacilityCoursesParams {
   page?: number;
   limit?: number;
 }
+
+// Review types
+export interface ReviewDto {
+  reviewId: number;
+  userId: number;
+  facilityId: number;
+  content: string;
+  rating: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewListResponse {
+  reviews: ReviewDto[];
+  pagination: Pagination;
+}
+
+export interface CreateReviewRequest {
+  facilityId: number;
+  content: string;
+  rating: number;
+}
+
+export interface UpdateReviewRequest {
+  content: string;
+  rating: number;
+}
+
+export interface FacilityRatingResponse {
+  facilityId: number;
+  averageRating: number;
+  reviewCount: number;
+}

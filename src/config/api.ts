@@ -15,4 +15,11 @@ export const API_ENDPOINTS = {
   METADATA_SPORTS: '/api/metadata/sports',
   METADATA_REGIONS: '/api/metadata/regions',
   METADATA_CITIES: (province: string) => `/api/metadata/regions/${encodeURIComponent(province)}/cities`,
+
+  // Review endpoints
+  REVIEWS: '/api/reviews',
+  REVIEW_BY_ID: (id: number) => `/api/reviews/${id}`,
+  REVIEWS_BY_FACILITY: (facilityId: number) => `/api/reviews/facility/${facilityId}`,
+  FACILITY_RATING: (facilityId: number) => `/api/reviews/facility/${facilityId}/rating`,
+  REVIEWS_BY_USER: (userId: number) => `/api/reviews/user/${userId}`,
 } as const;
