@@ -86,7 +86,8 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
     // 이미 선택된 거리를 다시 클릭하면 해제
     if (selectedRadius === radius) {
       setSelectedRadius(undefined);
-      const { lat, lng, radius: _, ...restFilters } = currentFilters;
+      const { radius: _, ...restFilters } = currentFilters;
+      console.log('거리 필터 해제:', restFilters);
       fetchFacilities(restFilters, 1);
       return;
     }

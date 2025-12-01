@@ -107,7 +107,10 @@ class ApiClient {
     const queryString = params
       ? '?' +
         Object.entries(params)
-          .filter(([_, value]) => value !== undefined && value !== null)
+          .filter(([_, value]) => {
+            // undefined, null, 빈 문자열 필터링
+            return value !== undefined && value !== null && value !== '';
+          })
           .map(
             ([key, value]) =>
               `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
