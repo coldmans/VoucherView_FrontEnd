@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { HomePage } from './components/HomePage';
 import { SearchResultsPage } from './components/SearchResultsPage';
@@ -9,21 +9,58 @@ import { MyPage } from './components/MyPage';
 type Page = 'home' | 'search' | 'detail' | 'login' | 'mypage';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+  // URL에 code 파라미터가 있으면 login 페이지로 시작
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasCode = urlParams.has('code');
 
-  const handleNavigate = (page: string) => {
+  const [currentPage, setCurrentPage] = useState<Page>(hasCode ? 'login' : 'home');
+  const [selectedFacilityId, setSelectedFacilityId] = useState<number>(1);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  // 초기 로그인 상태 확인
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
+  // 페이지 변경 시마다 로그인 상태 재확인
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, [currentPage]);
+
+  const handleNavigate = (page: string, facilityId?: number) => {
     setCurrentPage(page as Page);
+    if (facilityId !== undefined) {
+      setSelectedFacilityId(facilityId);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLogin = () => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setCurrentPage('home');
   };
 
   return (
     <div className="min-h-screen bg-white">
-      <Header currentPage={currentPage} onNavigate={handleNavigate} />
+      <Header
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
+        isLoggedIn={isLoggedIn}
+        onLogout={handleLogout}
+      />
       
       {currentPage === 'home' && <HomePage onNavigate={handleNavigate} />}
       {currentPage === 'search' && <SearchResultsPage onNavigate={handleNavigate} />}
-      {currentPage === 'detail' && <FacilityDetailPage onNavigate={handleNavigate} />}
-      {currentPage === 'login' && <LoginPage />}
+      {currentPage === 'detail' && <FacilityDetailPage facilityId={selectedFacilityId} onNavigate={handleNavigate} />}
+      {currentPage === 'login' && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />}
       {currentPage === 'mypage' && <MyPage />}
 
       {/* Footer */}

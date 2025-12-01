@@ -6,7 +6,7 @@ import { getFacilityList, FacilityDto } from '../api';
 import { getCurrentPosition } from '../utils/geolocation';
 
 interface SearchResultsPageProps {
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: string, facilityId?: number) => void;
 }
 
 export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate }) => {
@@ -17,6 +17,8 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentFilters, setCurrentFilters] = useState<SearchFilters>({});
+  const [selectedRadius, setSelectedRadius] = useState<number | undefined>(undefined);
+  const [selectedMinRating, setSelectedMinRating] = useState<number | undefined>(undefined);
 
   const fetchFacilities = async (filters: SearchFilters, page: number = 1) => {
     try {
@@ -78,6 +80,50 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
       const updatedFilters = { ...currentFilters, sortBy };
       fetchFacilities(updatedFilters, 1);
     }
+  };
+
+  const handleDistanceFilter = async (radius: number) => {
+    // 이미 선택된 거리를 다시 클릭하면 해제
+    if (selectedRadius === radius) {
+      setSelectedRadius(undefined);
+      const { lat, lng, radius: _, ...restFilters } = currentFilters;
+      fetchFacilities(restFilters, 1);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setSelectedRadius(radius);
+      const position = await getCurrentPosition();
+      const updatedFilters = {
+        ...currentFilters,
+        lat: position.lng,
+        lng: position.lat,
+        radius,
+      };
+      fetchFacilities(updatedFilters, 1);
+    } catch (error: any) {
+      setLoading(false);
+      setSelectedRadius(undefined);
+      alert(error.message || '위치 정보를 가져올 수 없어 거리 필터를 사용할 수 없습니다.');
+    }
+  };
+
+  const handleRatingFilter = (minRating: number) => {
+    // 이미 선택된 평점을 다시 클릭하면 해제
+    if (selectedMinRating === minRating) {
+      setSelectedMinRating(undefined);
+      const { minRating: _, ...restFilters } = currentFilters;
+      fetchFacilities(restFilters, 1);
+      return;
+    }
+
+    setSelectedMinRating(minRating);
+    const updatedFilters = {
+      ...currentFilters,
+      minRating,
+    };
+    fetchFacilities(updatedFilters, 1);
   };
 
   const sportColors: Record<string, string> = {
@@ -144,11 +190,23 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
                   <div>
                     <label className="block font-semibold mb-3">거리</label>
                     <div className="space-y-2">
-                      {['1km 이내', '3km 이내', '5km 이내', '10km 이내'].map(distance => (
-                        <label key={distance} className="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" className="w-5 h-5 accent-[#16E0B4]" />
-                          <span>{distance}</span>
-                        </label>
+                      {[
+                        { label: '1km 이내', value: 1000 },
+                        { label: '3km 이내', value: 3000 },
+                        { label: '5km 이내', value: 5000 },
+                        { label: '10km 이내', value: 10000 }
+                      ].map(({ label, value }) => (
+                        <button
+                          key={value}
+                          onClick={() => handleDistanceFilter(value)}
+                          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                            selectedRadius === value
+                              ? 'bg-[#16E0B4] text-white'
+                              : 'bg-gray-50 hover:bg-gray-100'
+                          }`}
+                        >
+                          {label}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -156,23 +214,22 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
                   <div className="pt-6 border-t border-[#E1E8ED]">
                     <label className="block font-semibold mb-3">평점</label>
                     <div className="space-y-2">
-                      {['4.5점 이상', '4.0점 이상', '3.5점 이상'].map(rating => (
-                        <label key={rating} className="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" className="w-5 h-5 accent-[#16E0B4]" />
-                          <span>{rating}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-[#E1E8ED]">
-                    <label className="block font-semibold mb-3">운영 시간</label>
-                    <div className="space-y-2">
-                      {['24시간', '새벽 운영', '심야 운영'].map(hour => (
-                        <label key={hour} className="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" className="w-5 h-5 accent-[#16E0B4]" />
-                          <span>{hour}</span>
-                        </label>
+                      {[
+                        { label: '4.5점 이상', value: 4.5 },
+                        { label: '4.0점 이상', value: 4.0 },
+                        { label: '3.5점 이상', value: 3.5 }
+                      ].map(({ label, value }) => (
+                        <button
+                          key={value}
+                          onClick={() => handleRatingFilter(value)}
+                          className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                            selectedMinRating === value
+                              ? 'bg-[#16E0B4] text-white'
+                              : 'bg-gray-50 hover:bg-gray-100'
+                          }`}
+                        >
+                          {label}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -242,11 +299,9 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ onNavigate
                     sport={facility.mainSport}
                     rating={facility.averRating}
                     reviewCount={0}
-                    price="문의"
-                    time="운영 시간 문의"
                     color={sportColors[facility.mainSport] || '#8B9DA9'}
                     facilities={[]}
-                    onClick={() => onNavigate?.('detail')}
+                    onClick={() => onNavigate?.('detail', facility.facilityId)}
                   />
                 ))}
               </div>

@@ -1,18 +1,137 @@
-import React, { useState } from 'react';
-import { MapPin, Clock, DollarSign, Phone, ParkingCircle, Shirt, Sparkles, Star, Lock, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Phone, Star, Lock, AlertCircle, ChevronLeft, ChevronRight, Calendar, Users } from 'lucide-react';
+import { getFacilityById, getFacilityCourses, FacilityDto, CourseDto } from '../api';
 
 interface FacilityDetailPageProps {
-  onNavigate?: (page: string) => void;
+  facilityId?: number;
+  onNavigate?: (page: string, facilityId?: number) => void;
 }
 
-export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ onNavigate }) => {
-  const [activeTab, setActiveTab] = useState('info');
+export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ facilityId = 1, onNavigate }) => {
+  const [activeTab, setActiveTab] = useState('courses');
+  const [facility, setFacility] = useState<FacilityDto | null>(null);
+  const [courses, setCourses] = useState<CourseDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [selectedCourse, setSelectedCourse] = useState<CourseDto | null>(null);
 
-  const reviews = [
-    { author: '김*진', rating: 5, date: '2024.11.20', content: '아이가 정말 좋아해요. 시설도 깨끗하고 코치님들도 친절하십니다. 주차도 편해서 자주 이용하고 있어요.' },
-    { author: '이*수', rating: 4, date: '2024.11.15', content: '가격대비 만족스러운 시설입니다. 다만 주말에는 사람이 많아서 예약이 필수에요.' },
-    { author: '박*영', rating: 5, date: '2024.11.10', content: '초등학생 자녀와 함께 다니기 좋습니다. 락커룸도 넓고 샤워 시설도 깨끗해요.' }
-  ];
+  const sportColors: Record<string, string> = {
+    '축구': '#16E0B4',
+    '헬스': '#FF6B9D',
+    '배구': '#FFA726',
+    '수영': '#42A5F5',
+    '농구': '#AB47BC',
+    '테니스': '#66BB6A',
+  };
+
+  useEffect(() => {
+    fetchFacilityData();
+  }, [facilityId]);
+
+  useEffect(() => {
+    if (activeTab === 'courses') {
+      fetchCourses(1);
+    }
+  }, [activeTab, facilityId]);
+
+  const fetchFacilityData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getFacilityById(facilityId);
+      setFacility(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '시설 정보를 불러올 수 없습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCourses = async (page: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getFacilityCourses({
+        facilityId,
+        page,
+        limit: 10,
+      });
+      setCourses(response.courses);
+      setTotalCount(response.pagination.totalCount);
+      setCurrentPage(page);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '강좌 목록을 불러올 수 없습니다.');
+      setCourses([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    fetchCourses(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const formatDate = (dateString: string) => {
+    return dateString.replace(/-/g, '.');
+  };
+
+  const formatPrice = (price: number) => {
+    return price.toLocaleString('ko-KR');
+  };
+
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(totalCount / 10);
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, currentPage + 2);
+
+      if (currentPage <= 3) {
+        endPage = maxPagesToShow;
+      }
+
+      if (currentPage >= totalPages - 2) {
+        startPage = totalPages - maxPagesToShow + 1;
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+
+    return pages;
+  };
+
+  if (loading && !facility) {
+    return (
+      <div className="bg-[#F5F7FA] min-h-screen flex items-center justify-center">
+        <p className="text-[#8B9DA9]">시설 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
+
+  if (error && !facility) {
+    return (
+      <div className="bg-[#F5F7FA] min-h-screen flex items-center justify-center">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+  if (!facility) {
+    return null;
+  }
 
   return (
     <div className="bg-white">
@@ -20,62 +139,45 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ onNaviga
         <div className="bg-white rounded-2xl md:rounded-3xl border-2 border-[#E1E8ED] p-4 md:p-8 mb-6 md:mb-8">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <div className="inline-block px-4 py-2 bg-[#16E0B4]/10 text-[#16E0B4] rounded-full mb-3">
-                축구
+              <div
+                className="inline-block px-4 py-2 rounded-full mb-3"
+                style={{
+                  backgroundColor: (sportColors[facility.mainSport] || '#8B9DA9') + '20',
+                  color: sportColors[facility.mainSport] || '#8B9DA9'
+                }}
+              >
+                {facility.mainSport}
               </div>
-              <h2 className="mb-3">강남 스포츠센터</h2>
+              <h2 className="mb-3">{facility.name}</h2>
               <div className="flex items-center gap-2 text-[#8B9DA9] mb-4">
                 <MapPin className="w-5 h-5" />
-                <span>서울시 강남구 역삼동 123-45</span>
+                <span>{facility.address}</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                   <Star className="w-6 h-6 text-[#FFA726] fill-[#FFA726]" />
-                  <span className="text-xl font-bold">4.8</span>
+                  <span className="text-xl font-bold">{facility.averRating.toFixed(1)}</span>
                 </div>
-                <span className="text-[#8B9DA9]">리뷰 234개</span>
               </div>
             </div>
-            
+
             <div className="text-right">
               <div className="flex items-center gap-2 text-[#8B9DA9] mb-2">
                 <Phone className="w-5 h-5" />
-                <span>02-1234-5678</span>
-              </div>
-              <div className="flex items-center gap-2 text-[#8B9DA9]">
-                <Clock className="w-5 h-5" />
-                <span>평일 06:00 - 22:00</span>
+                <span>{facility.phoneNumber}</span>
               </div>
             </div>
           </div>
 
-          {/* Quick Info */}
-          <div className="grid grid-cols-3 gap-4 p-6 bg-[#F5F7FA] rounded-2xl">
+          {/* Location Info */}
+          <div className="p-6 bg-[#F5F7FA] rounded-2xl">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-[#16E0B4]/20 rounded-xl flex items-center justify-center">
-                <ParkingCircle className="w-6 h-6 text-[#16E0B4]" />
+                <MapPin className="w-6 h-6 text-[#16E0B4]" />
               </div>
               <div>
-                <p className="text-[#8B9DA9] text-sm">주차</p>
-                <p className="font-semibold">가능 (50대)</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#16E0B4]/20 rounded-xl flex items-center justify-center">
-                <Shirt className="w-6 h-6 text-[#16E0B4]" />
-              </div>
-              <div>
-                <p className="text-[#8B9DA9] text-sm">락커룸</p>
-                <p className="font-semibold">남/녀 분리</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#16E0B4]/20 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-[#16E0B4]" />
-              </div>
-              <div>
-                <p className="text-[#8B9DA9] text-sm">샤워실</p>
-                <p className="font-semibold">온수 제공</p>
+                <p className="text-[#8B9DA9] text-sm">위치 좌표</p>
+                <p className="font-semibold">위도: {facility.latitude.toFixed(6)}, 경도: {facility.longitude.toFixed(6)}</p>
               </div>
             </div>
           </div>
@@ -85,9 +187,7 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ onNaviga
         <div className="border-b-2 border-[#E1E8ED] mb-6 md:mb-8 overflow-x-auto">
           <div className="flex gap-4 md:gap-8 min-w-max md:min-w-0">
             {[
-              { id: 'info', label: '시설 정보' },
-              { id: 'price', label: '가격 안내' },
-              { id: 'location', label: '위치' },
+              { id: 'courses', label: '강좌 정보' },
               { id: 'reviews', label: '리뷰' }
             ].map(tab => (
               <button
@@ -109,116 +209,173 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ onNaviga
         {/* Tab Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-16">
           <div className="lg:col-span-2">
-            {activeTab === 'info' && (
-              <div className="bg-white">
-                <h3 className="mb-6">시설 소개</h3>
-                <div className="space-y-4 text-[#8B9DA9] leading-relaxed mb-8">
-                  <p>
-                    강남 스포츠센터는 2015년에 개관한 현대식 축구 전문 시설입니다. 
-                    실내/실외 구장을 모두 갖추고 있어 날씨와 관계없이 운동이 가능합니다.
-                  </p>
-                  <p>
-                    특히 초등학생부터 중고등학생까지 연령별 맞춤 프로그램을 운영하고 있으며, 
-                    경험 많은 지도자들이 체계적인 커리큘럼으로 지도합니다.
-                  </p>
-                  <p>
-                    학부모 대기 공간, 카페테리아, 넓은 주차장 등 편의시설도 잘 갖추어져 있어 
-                    학부모님들께서 편안하게 이용하실 수 있습니다.
-                  </p>
-                </div>
-
-                <h4 className="mb-4">운영 시간</h4>
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center justify-between p-4 bg-[#F5F7FA] rounded-xl">
-                    <span className="font-semibold">평일</span>
-                    <span className="text-[#8B9DA9]">오전 06:00 - 오후 10:00</span>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-[#F5F7FA] rounded-xl">
-                    <span className="font-semibold">주말</span>
-                    <span className="text-[#8B9DA9]">오전 07:00 - 오후 09:00</span>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-[#F5F7FA] rounded-xl">
-                    <span className="font-semibold">공휴일</span>
-                    <span className="text-[#8B9DA9]">오전 08:00 - 오후 06:00</span>
-                  </div>
-                </div>
-
-                <h4 className="mb-4">제공 프로그램</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  {['초등부 기초반', '초등부 심화반', '중등부', '성인 취미반'].map(program => (
-                    <div key={program} className="p-4 border-2 border-[#E1E8ED] rounded-xl">
-                      <p className="font-semibold mb-1">{program}</p>
-                      <p className="text-sm text-[#8B9DA9]">주 2회 / 1회 60분</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'price' && (
+            {activeTab === 'courses' && (
               <div>
-                <h3 className="mb-6">가격 안내</h3>
-                <div className="space-y-4">
-                  {[
-                    { title: '초등부 기초반', price: '월 50,000원', description: '주 2회 (화/목) 오후 4시' },
-                    { title: '초등부 심화반', price: '월 60,000원', description: '주 2회 (월/수) 오후 5시' },
-                    { title: '중등부', price: '월 70,000원', description: '주 2회 (화/목) 오후 7시' },
-                    { title: '성인 취미반', price: '월 80,000원', description: '주 2회 (월/금) 오후 8시' }
-                  ].map(item => (
-                    <div key={item.title} className="p-6 border-2 border-[#E1E8ED] rounded-xl hover:border-[#16E0B4] transition-colors">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4>{item.title}</h4>
-                        <span className="text-[#16E0B4] font-bold">{item.price}</span>
+                <h3 className="mb-6">등록된 강좌 ({totalCount}개)</h3>
+
+                {/* Course Detail View */}
+                {selectedCourse && (
+                  <div className="mb-6 p-6 bg-[#F5F7FA] rounded-2xl border-2 border-[#16E0B4]">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4>{selectedCourse.courseName}</h4>
+                      <button
+                        onClick={() => setSelectedCourse(null)}
+                        className="text-[#8B9DA9] hover:text-[#0D1B2A]"
+                      >
+                        닫기
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-[#8B9DA9] mb-1">강좌 번호</p>
+                        <p className="font-semibold">{selectedCourse.courseNo}</p>
                       </div>
-                      <p className="text-[#8B9DA9]">{item.description}</p>
+                      <div>
+                        <p className="text-sm text-[#8B9DA9] mb-1">종목</p>
+                        <p className="font-semibold">{selectedCourse.sportName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-[#8B9DA9] mb-1">수강 기간</p>
+                        <p className="font-semibold">{formatDate(selectedCourse.startDate)} ~ {formatDate(selectedCourse.endDate)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-[#8B9DA9] mb-1">가격</p>
+                        <p className="font-semibold text-[#16E0B4]">{formatPrice(selectedCourse.price)}원</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-[#8B9DA9] mb-1">개설 정보</p>
+                        <p className="font-semibold">{selectedCourse.establishmentYear}년 {selectedCourse.establishmentMonth}월</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-[#8B9DA9] mb-1">신청자 수</p>
+                        <p className="font-semibold">{selectedCourse.requestCount}명</p>
+                      </div>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="mt-6 p-6 bg-[#F5F7FA] rounded-2xl">
-                  <h4 className="mb-3">💳 결제 안내</h4>
-                  <ul className="space-y-2 text-[#8B9DA9]">
-                    <li>• 3개월 이상 등록 시 10% 할인</li>
-                    <li>• 형제/자매 등록 시 각 5% 할인</li>
-                    <li>• 카드/현금 결제 가능</li>
-                  </ul>
-                </div>
-              </div>
-            )}
+                  </div>
+                )}
 
-            {activeTab === 'location' && (
-              <div>
-                <h3 className="mb-6">위치 안내</h3>
-                <div className="h-96 bg-[#F5F7FA] rounded-2xl flex items-center justify-center border-2 border-[#E1E8ED] mb-6">
-                  <div className="text-center">
-                    <MapPin className="w-16 h-16 text-[#16E0B4] mx-auto mb-4" />
-                    <p className="text-[#8B9DA9]">지도 영역</p>
-                    <p className="text-sm text-[#8B9DA9]">서울시 강남구 역삼동 123-45</p>
+                {/* Loading State */}
+                {loading && (
+                  <div className="text-center py-12">
+                    <p className="text-[#8B9DA9]">강좌 목록을 불러오는 중...</p>
                   </div>
-                </div>
-                
-                <h4 className="mb-4">교통 안내</h4>
-                <div className="space-y-3">
-                  <div className="p-4 bg-[#F5F7FA] rounded-xl">
-                    <p className="font-semibold mb-1">🚇 지하철</p>
-                    <p className="text-[#8B9DA9]">2호선 역삼역 3번 출구 도보 5분</p>
+                )}
+
+                {/* Error State */}
+                {error && (
+                  <div className="text-center py-12">
+                    <p className="text-red-500">{error}</p>
                   </div>
-                  <div className="p-4 bg-[#F5F7FA] rounded-xl">
-                    <p className="font-semibold mb-1">🚌 버스</p>
-                    <p className="text-[#8B9DA9]">146, 341, 360, 740 (역삼역 정류장 하차)</p>
+                )}
+
+                {/* Empty State */}
+                {!loading && !error && courses.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-[#8B9DA9]">등록된 강좌가 없습니다.</p>
                   </div>
-                  <div className="p-4 bg-[#F5F7FA] rounded-xl">
-                    <p className="font-semibold mb-1">🚗 주차</p>
-                    <p className="text-[#8B9DA9]">50대 주차 가능 (2시간 무료)</p>
-                  </div>
-                </div>
+                )}
+
+                {/* Course List */}
+                {!loading && !error && courses.length > 0 && (
+                  <>
+                    <div className="space-y-4 mb-6">
+                      {courses.map((course) => (
+                        <div
+                          key={course.courseId}
+                          onClick={() => setSelectedCourse(course)}
+                          className="p-6 border-2 border-[#E1E8ED] rounded-xl hover:border-[#16E0B4] transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h4 className="mb-1">{course.courseName}</h4>
+                              <p className="text-sm text-[#8B9DA9]">강좌 번호: {course.courseNo}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[#16E0B4] font-bold text-lg mb-1">{formatPrice(course.price)}원</p>
+                              <p className="text-sm text-[#8B9DA9]">{course.sportName}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-[#8B9DA9]">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              <span>{formatDate(course.startDate)} ~ {formatDate(course.endDate)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              <span>신청 {course.requestCount}명</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 0 && (
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+
+                        {currentPage > 3 && totalPages > 5 && (
+                          <>
+                            <button
+                              onClick={() => handlePageChange(1)}
+                              className="w-10 h-10 rounded-lg transition-colors bg-white border-2 border-[#E1E8ED] hover:border-[#16E0B4]"
+                            >
+                              1
+                            </button>
+                            {currentPage > 4 && <span className="px-2">...</span>}
+                          </>
+                        )}
+
+                        {getPageNumbers().map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`w-10 h-10 rounded-lg transition-colors ${
+                              page === currentPage
+                                ? 'bg-[#16E0B4] text-white'
+                                : 'bg-white border-2 border-[#E1E8ED] hover:border-[#16E0B4]'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+
+                        {currentPage < totalPages - 2 && totalPages > 5 && (
+                          <>
+                            {currentPage < totalPages - 3 && <span className="px-2">...</span>}
+                            <button
+                              onClick={() => handlePageChange(totalPages)}
+                              className="w-10 h-10 rounded-lg transition-colors bg-white border-2 border-[#E1E8ED] hover:border-[#16E0B4]"
+                            >
+                              {totalPages}
+                            </button>
+                          </>
+                        )}
+
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
             {activeTab === 'reviews' && (
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h3>리뷰 ({reviews.length})</h3>
+                  <h3>리뷰</h3>
                 </div>
 
                 {/* Login Required Banner */}
@@ -228,44 +385,18 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ onNaviga
                       <Lock className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="mb-2">리뷰 작성은 로그인 후 이용 가능합니다</h4>
+                      <h4 className="mb-2">리뷰 기능은 개발 중입니다</h4>
                       <p className="text-[#8B9DA9] mb-4">
-                        별점, 리뷰, 댓글 작성 기능은 회원 전용 서비스입니다. 
-                        간편하게 로그인하시고 다른 학부모님들과 의견을 나눠보세요!
+                        별점, 리뷰 작성 기능은 현재 백엔드 개발 중입니다.
+                        곧 추가될 예정이니 조금만 기다려주세요!
                       </p>
-                      <button 
-                        onClick={() => onNavigate?.('login')}
-                        className="px-6 py-3 bg-[#0D1B2A] text-white rounded-xl hover:bg-[#1a2f42] transition-colors"
-                      >
-                        로그인하러 가기
-                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Review List (Read-only for non-members) */}
-                <div className="space-y-4">
-                  {reviews.map((review, index) => (
-                    <div key={index} className="p-6 bg-[#F5F7FA] rounded-2xl">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[#0D1B2A] rounded-full flex items-center justify-center text-white font-bold">
-                            {review.author[0]}
-                          </div>
-                          <div>
-                            <p className="font-semibold">{review.author}</p>
-                            <p className="text-sm text-[#8B9DA9]">{review.date}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {[...Array(review.rating)].map((_, i) => (
-                            <Star key={i} className="w-5 h-5 text-[#FFA726] fill-[#FFA726]" />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-[#8B9DA9] leading-relaxed">{review.content}</p>
-                    </div>
-                  ))}
+                {/* Placeholder Review List */}
+                <div className="text-center py-12 border-2 border-dashed border-[#E1E8ED] rounded-2xl">
+                  <p className="text-[#8B9DA9]">리뷰 기능이 추가되면 여기에 리뷰 목록이 표시됩니다.</p>
                 </div>
               </div>
             )}
@@ -278,19 +409,15 @@ export const FacilityDetailPage: React.FC<FacilityDetailPageProps> = ({ onNaviga
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-3 text-[#8B9DA9]">
                   <Phone className="w-5 h-5" />
-                  <span>02-1234-5678</span>
-                </div>
-                <div className="flex items-center gap-3 text-[#8B9DA9]">
-                  <Clock className="w-5 h-5" />
-                  <span>상담 가능 시간: 09:00-18:00</span>
+                  <span>{facility.phoneNumber}</span>
                 </div>
               </div>
-              
-              <button className="w-full py-4 bg-[#16E0B4] text-[#0D1B2A] rounded-xl hover:bg-[#14c9a0] transition-colors font-bold mb-3">
+
+              <button
+                onClick={() => window.location.href = `tel:${facility.phoneNumber}`}
+                className="w-full py-4 bg-[#16E0B4] text-[#0D1B2A] rounded-xl hover:bg-[#14c9a0] transition-colors font-bold mb-3"
+              >
                 전화 문의하기
-              </button>
-              <button className="w-full py-4 bg-white border-2 border-[#E1E8ED] rounded-xl hover:border-[#16E0B4] transition-colors font-bold">
-                찜하기
               </button>
 
               <div className="mt-6 pt-6 border-t border-[#E1E8ED]">

@@ -3,7 +3,7 @@ import { Search, MapPin, Calendar, DollarSign, Trophy, Dumbbell, Volleyball, Swa
 import { getFacilityList, FacilityDto } from '../api';
 
 interface HomePageProps {
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: string, facilityId?: number) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
@@ -144,7 +144,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 <div
                   key={facility.facilityId}
                   className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow cursor-pointer border-2 border-[#E1E8ED] hover:border-[#16E0B4] p-6"
-                  onClick={() => onNavigate?.('detail')}
+                  onClick={() => onNavigate?.('detail', facility.facilityId)}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="inline-block px-3 py-1 bg-[#16E0B4]/10 text-[#16E0B4] rounded-full">

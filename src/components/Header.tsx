@@ -4,9 +4,11 @@ import { Search, User, Heart, Menu, X } from 'lucide-react';
 interface HeaderProps {
   currentPage?: string;
   onNavigate?: (page: string) => void;
+  isLoggedIn?: boolean;
+  onLogout?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
+export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, isLoggedIn, onLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -38,26 +40,36 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
               시설 검색
             </button>
             <button className="hover:text-[#16E0B4] transition-colors">
-              이용 안내
+              게시판
             </button>
           </nav>
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-4">
-            <button 
+            <button
               onClick={() => onNavigate?.('mypage')}
               className="flex items-center gap-2 px-3 py-2 hover:bg-white/10 rounded-lg transition-colors"
             >
               <Heart className="w-5 h-5" />
               <span>마이페이지</span>
             </button>
-            <button 
-              onClick={() => onNavigate?.('login')}
-              className="flex items-center gap-2 px-4 py-2 bg-[#16E0B4] text-[#0D1B2A] rounded-lg hover:bg-[#14c9a0] transition-colors"
-            >
-              <User className="w-5 h-5" />
-              <span>로그인</span>
-            </button>
+            {isLoggedIn ? (
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-[#FF6B6B] text-white rounded-lg hover:bg-[#ee5a5a] transition-colors"
+              >
+                <User className="w-5 h-5" />
+                <span>로그아웃</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => onNavigate?.('login')}
+                className="flex items-center gap-2 px-4 py-2 bg-[#16E0B4] text-[#0D1B2A] rounded-lg hover:bg-[#14c9a0] transition-colors"
+              >
+                <User className="w-5 h-5" />
+                <span>로그인</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -92,9 +104,9 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
                 시설 검색
               </button>
               <button className="text-left hover:text-[#16E0B4] transition-colors">
-                이용 안내
+                게시판
               </button>
-              <button 
+              <button
                 onClick={() => {
                   onNavigate?.('mypage');
                   setMobileMenuOpen(false);
@@ -103,16 +115,29 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
               >
                 마이페이지
               </button>
-              <button 
-                onClick={() => {
-                  onNavigate?.('login');
-                  setMobileMenuOpen(false);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-[#16E0B4] text-[#0D1B2A] rounded-lg hover:bg-[#14c9a0] transition-colors justify-center"
-              >
-                <User className="w-5 h-5" />
-                <span>로그인</span>
-              </button>
+              {isLoggedIn ? (
+                <button
+                  onClick={() => {
+                    onLogout?.();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#FF6B6B] text-white rounded-lg hover:bg-[#ee5a5a] transition-colors justify-center"
+                >
+                  <User className="w-5 h-5" />
+                  <span>로그아웃</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    onNavigate?.('login');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#16E0B4] text-[#0D1B2A] rounded-lg hover:bg-[#14c9a0] transition-colors justify-center"
+                >
+                  <User className="w-5 h-5" />
+                  <span>로그인</span>
+                </button>
+              )}
             </nav>
           </div>
         )}

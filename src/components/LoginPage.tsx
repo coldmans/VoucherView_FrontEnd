@@ -1,9 +1,119 @@
-import React from 'react';
-import { Lock, Mail, MessageCircle, Chrome } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Lock, Mail, MessageCircle } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
+import { Toast } from './Toast';
 
-export const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  onNavigate?: (page: string) => void;
+  onLogin?: () => void;
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin }) => {
+  const [showToast, setShowToast] = useState(false);
+  useEffect(() => {
+    console.log('LoginPage useEffect 실행됨');
+    console.log('현재 URL:', window.location.href);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    console.log('URL에서 추출한 code:', code);
+
+    if (code) {
+      console.log('카카오 인증 코드 받음:', code);
+
+      const params = new URLSearchParams();
+      params.append('code', code);
+
+      // 1. 카카오 토큰 받기
+      fetch(`${API_BASE_URL}/oauth/kakao/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params,
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((tokenData) => {
+          console.log('카카오 토큰 응답:', tokenData);
+          const kakaoAccessToken = tokenData.access_token;
+
+          if (kakaoAccessToken) {
+            // 2. 카카오 액세스 토큰으로 우리 서비스 JWT 받기
+            return fetch(`${API_BASE_URL}/oauth/kakao/access`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(kakaoAccessToken),
+            });
+          } else {
+            throw new Error('카카오 액세스 토큰이 없습니다.');
+          }
+        })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.text();
+        })
+        .then((jwt) => {
+          console.log('JWT 토큰 받음:', jwt);
+
+          // 3. JWT를 localStorage에 저장
+          localStorage.setItem('token', jwt);
+
+          console.log('로그인 성공! 토큰 저장 완료');
+
+          // 4. 로그인 상태 업데이트
+          onLogin?.();
+
+          // 5. 토스트 알림 표시
+          setShowToast(true);
+
+          // 6. 잠시 후 홈으로 이동
+          setTimeout(() => {
+            window.history.replaceState({}, '', '/');
+            onNavigate?.('home');
+          }, 1500);
+        })
+        .catch((err) => {
+          console.error('카카오 로그인 처리 실패:', err);
+          alert('로그인에 실패했습니다. 다시 시도해주세요.');
+        });
+    }
+  }, []);
+
+  const handleKakaoLogin = async () => {
+    try {
+      console.log('카카오 로그인 요청 시작...');
+
+      const response = await fetch(`${API_BASE_URL}/oauth/kakao`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const authUrl = await response.text();
+
+      console.log('받은 응답:', authUrl);
+
+      window.location.href = authUrl;
+    } catch (err) {
+      console.error('카카오 로그인 실패:', err);
+      alert('카카오 로그인에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center py-8 md:py-16">
+    <>
+      {showToast && <Toast message="로그인 되었습니다! 🎉" onClose={() => setShowToast(false)} />}
+      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center py-8 md:py-16">
       <div className="max-w-md w-full mx-4 md:mx-0">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-[#16E0B4] rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -17,22 +127,13 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl p-8 mb-6">
-          <div className="space-y-4">
-            <button className="w-full flex items-center justify-center gap-3 py-4 bg-[#FEE500] text-[#000000] rounded-xl hover:bg-[#fdd800] transition-colors font-semibold">
-              <MessageCircle className="w-6 h-6" />
-              <span>카카오로 시작하기</span>
-            </button>
-
-            <button className="w-full flex items-center justify-center gap-3 py-4 bg-[#03C75A] text-white rounded-xl hover:bg-[#02b350] transition-colors font-semibold">
-              <span className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-[#03C75A] font-bold">N</span>
-              <span>네이버로 시작하기</span>
-            </button>
-
-            <button className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-[#E1E8ED] rounded-xl hover:border-[#0D1B2A] transition-colors font-semibold">
-              <Chrome className="w-6 h-6" />
-              <span>구글로 시작하기</span>
-            </button>
-          </div>
+          <button
+            onClick={handleKakaoLogin}
+            className="w-full flex items-center justify-center gap-3 py-4 bg-[#FEE500] text-[#000000] rounded-xl hover:bg-[#fdd800] transition-colors font-semibold"
+          >
+            <MessageCircle className="w-6 h-6" />
+            <span>카카오로 시작하기</span>
+          </button>
         </div>
 
         <div className="bg-gradient-to-r from-[#16E0B4]/10 to-[#16E0B4]/5 border-2 border-[#16E0B4] rounded-2xl p-6">
@@ -71,6 +172,7 @@ export const LoginPage: React.FC = () => {
           </ul>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

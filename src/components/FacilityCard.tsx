@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, DollarSign, Clock, ParkingCircle, Shirt, Sparkles, Heart } from 'lucide-react';
+import { MapPin, ParkingCircle, Shirt, Sparkles, Heart } from 'lucide-react';
 
 interface FacilityCardProps {
   name: string;
@@ -7,8 +7,8 @@ interface FacilityCardProps {
   sport: string;
   rating: number;
   reviewCount: number;
-  price: string;
-  time: string;
+  price?: string;
+  time?: string;
   color: string;
   facilities: string[];
   onClick?: () => void;
@@ -20,8 +20,6 @@ export const FacilityCard: React.FC<FacilityCardProps> = ({
   sport,
   rating,
   reviewCount,
-  price,
-  time,
   color,
   facilities,
   onClick
@@ -67,33 +65,24 @@ export const FacilityCard: React.FC<FacilityCardProps> = ({
           <span className="text-sm">{address}</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-[#E1E8ED]">
-          <div className="flex items-center gap-2 text-[#8B9DA9]">
-            <DollarSign className="w-4 h-4" />
-            <span className="text-sm">{price}</span>
-          </div>
-          <div className="flex items-center gap-2 text-[#8B9DA9]">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm">{time}</span>
-          </div>
-        </div>
-
         {/* Facilities Icons */}
-        <div className="flex items-center gap-2">
-          {facilities.map((facility) => {
-            const Icon = facilityIcons[facility];
-            return Icon ? (
-              <div 
-                key={facility}
-                className="flex items-center gap-1 px-3 py-1 bg-[#F5F7FA] rounded-lg"
-                title={facility}
-              >
-                <Icon className="w-4 h-4 text-[#8B9DA9]" />
-                <span className="text-xs text-[#8B9DA9]">{facility}</span>
-              </div>
-            ) : null;
-          })}
-        </div>
+        {facilities.length > 0 && (
+          <div className="flex items-center gap-2 pt-4 border-t border-[#E1E8ED]">
+            {facilities.map((facility) => {
+              const Icon = facilityIcons[facility];
+              return Icon ? (
+                <div
+                  key={facility}
+                  className="flex items-center gap-1 px-3 py-1 bg-[#F5F7FA] rounded-lg"
+                  title={facility}
+                >
+                  <Icon className="w-4 h-4 text-[#8B9DA9]" />
+                  <span className="text-xs text-[#8B9DA9]">{facility}</span>
+                </div>
+              ) : null;
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
