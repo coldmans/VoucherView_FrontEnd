@@ -17,6 +17,7 @@ import {
 } from '../api/comment';
 import { PostDto, CommentDto, PostCategoryLabels, VoteType } from '../types/post';
 import { formatDateTime } from '../utils/dateFormat';
+import { ConfirmDialog } from './ConfirmDialog';
 
 export const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -28,8 +29,32 @@ export const PostDetailPage: React.FC = () => {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState('');
 
+  // 확인 다이얼로그 상태
+  const [showDeletePostDialog, setShowDeletePostDialog] = useState(false);
+  const [showDeleteCommentDialog, setShowDeleteCommentDialog] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
+
+  // 알림 다이얼로그 상태
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [infoDialogConfig, setInfoDialogConfig] = useState({
+    title: '',
+    message: '',
+    variant: 'warning' as 'danger' | 'warning' | 'info',
+    onConfirm: () => {},
+  });
+
   const userId = localStorage.getItem('userId');
   const isLoggedIn = Boolean(localStorage.getItem('token'));
+
+  const showAlert = (title: string, message: string, variant: 'danger' | 'warning' | 'info' = 'warning', onConfirm?: () => void) => {
+    setInfoDialogConfig({
+      title,
+      message,
+      variant,
+      onConfirm: onConfirm || (() => setShowInfoDialog(false)),
+    });
+    setShowInfoDialog(true);
+  };
 
   useEffect(() => {
     if (postId) {
@@ -44,8 +69,10 @@ export const PostDetailPage: React.FC = () => {
       setPost(data);
     } catch (error) {
       console.error('게시물 조회 실패:', error);
-      alert('게시물을 찾을 수 없습니다.');
-      navigate('/community');
+      showAlert('오류', '게시물을 찾을 수 없습니다.', 'warning', () => {
+        setShowInfoDialog(false);
+        navigate('/community');
+      });
     }
   };
 
@@ -59,22 +86,21 @@ export const PostDetailPage: React.FC = () => {
   };
 
   const handleDeletePost = async () => {
-    if (!confirm('정말 이 게시물을 삭제하시겠습니까?')) return;
-
     try {
       await deletePost(Number(postId));
-      alert('게시물이 삭제되었습니다.');
       navigate('/community');
     } catch (error) {
       console.error('게시물 삭제 실패:', error);
-      alert('게시물 삭제에 실패했습니다.');
+      showAlert('삭제 실패', '게시물 삭제에 실패했습니다.');
     }
   };
 
   const handleVote = async (voteType: VoteType) => {
     if (!isLoggedIn) {
-      alert('로그인이 필요합니다.');
-      navigate('/login');
+      showAlert('로그인 필요', '로그인이 필요합니다.', 'warning', () => {
+        setShowInfoDialog(false);
+        navigate('/login');
+      });
       return;
     }
 
@@ -83,19 +109,21 @@ export const PostDetailPage: React.FC = () => {
       fetchPostDetail(); // 추천/비추천 수 업데이트
     } catch (error) {
       console.error('투표 실패:', error);
-      alert('투표에 실패했습니다.');
+      showAlert('투표 실패', '투표에 실패했습니다.');
     }
   };
 
   const handleCreateComment = async () => {
     if (!isLoggedIn) {
-      alert('로그인이 필요합니다.');
-      navigate('/login');
+      showAlert('로그인 필요', '로그인이 필요합니다.', 'warning', () => {
+        setShowInfoDialog(false);
+        navigate('/login');
+      });
       return;
     }
 
     if (!newComment.trim()) {
-      alert('댓글 내용을 입력해주세요.');
+      showAlert('입력 필요', '댓글 내용을 입력해주세요.');
       return;
     }
 
@@ -106,7 +134,7 @@ export const PostDetailPage: React.FC = () => {
       fetchPostDetail(); // 댓글 수 업데이트
     } catch (error) {
       console.error('댓글 작성 실패:', error);
-      alert('댓글 작성에 실패했습니다.');
+      showAlert('작성 실패', '댓글 작성에 실패했습니다.');
     }
   };
 
@@ -117,7 +145,7 @@ export const PostDetailPage: React.FC = () => {
 
   const handleSaveComment = async (commentId: number) => {
     if (!editingContent.trim()) {
-      alert('댓글 내용을 입력해주세요.');
+      showAlert('입력 필요', '댓글 내용을 입력해주세요.');
       return;
     }
 
@@ -128,20 +156,22 @@ export const PostDetailPage: React.FC = () => {
       fetchComments();
     } catch (error) {
       console.error('댓글 수정 실패:', error);
-      alert('댓글 수정에 실패했습니다.');
+      showAlert('수정 실패', '댓글 수정에 실패했습니다.');
     }
   };
 
-  const handleDeleteComment = async (commentId: number) => {
-    if (!confirm('정말 이 댓글을 삭제하시겠습니까?')) return;
+  const handleDeleteComment = async () => {
+    if (deletingCommentId === null) return;
 
     try {
-      await deleteComment(commentId);
+      await deleteComment(deletingCommentId);
       fetchComments();
       fetchPostDetail(); // 댓글 수 업데이트
+      setShowDeleteCommentDialog(false);
+      setDeletingCommentId(null);
     } catch (error) {
       console.error('댓글 삭제 실패:', error);
-      alert('댓글 삭제에 실패했습니다.');
+      showAlert('삭제 실패', '댓글 삭제에 실패했습니다.');
     }
   };
 
@@ -195,7 +225,7 @@ export const PostDetailPage: React.FC = () => {
                   <Edit className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={handleDeletePost}
+                  onClick={() => setShowDeletePostDialog(true)}
                   className="p-2 text-[#8B9DA9] hover:text-red-500 hover:bg-[#F5F7FA] rounded-lg"
                 >
                   <Trash2 className="w-5 h-5" />
@@ -316,9 +346,10 @@ export const PostDetailPage: React.FC = () => {
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() =>
-                                  handleDeleteComment(comment.commentId)
-                                }
+                                onClick={() => {
+                                  setDeletingCommentId(comment.commentId);
+                                  setShowDeleteCommentDialog(true);
+                                }}
                                 className="p-1 text-[#8B9DA9] hover:text-red-500"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -337,6 +368,43 @@ export const PostDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        isOpen={showDeletePostDialog}
+        title="게시물 삭제"
+        message="정말 이 게시물을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+        onConfirm={handleDeletePost}
+        onCancel={() => setShowDeletePostDialog(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteCommentDialog}
+        title="댓글 삭제"
+        message="정말 이 댓글을 삭제하시겠습니까?"
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+        onConfirm={handleDeleteComment}
+        onCancel={() => {
+          setShowDeleteCommentDialog(false);
+          setDeletingCommentId(null);
+        }}
+      />
+
+      {/* Info Dialog */}
+      <ConfirmDialog
+        isOpen={showInfoDialog}
+        title={infoDialogConfig.title}
+        message={infoDialogConfig.message}
+        confirmText="확인"
+        onConfirm={infoDialogConfig.onConfirm}
+        onCancel={() => setShowInfoDialog(false)}
+        variant={infoDialogConfig.variant}
+      />
     </div>
   );
 };

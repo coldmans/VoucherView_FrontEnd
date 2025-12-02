@@ -7,6 +7,7 @@ import {
   PostCategoryLabels,
   CreatePostRequest,
 } from '../types/post';
+import { ConfirmDialog } from './ConfirmDialog';
 
 export const PostWritePage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -18,11 +19,32 @@ export const PostWritePage: React.FC = () => {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 다이얼로그 상태
+  const [showDialog, setShowDialog] = useState(false);
+  const [dialogConfig, setDialogConfig] = useState({
+    title: '',
+    message: '',
+    variant: 'info' as 'danger' | 'warning' | 'info',
+    onConfirm: () => {},
+  });
+
+  const showInfoDialog = (title: string, message: string, onConfirm: () => void) => {
+    setDialogConfig({ title, message, variant: 'info', onConfirm });
+    setShowDialog(true);
+  };
+
+  const showWarningDialog = (title: string, message: string, onConfirm: () => void) => {
+    setDialogConfig({ title, message, variant: 'warning', onConfirm });
+    setShowDialog(true);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('로그인이 필요합니다.');
-      navigate('/login');
+      showWarningDialog('로그인 필요', '로그인이 필요합니다.', () => {
+        setShowDialog(false);
+        navigate('/login');
+      });
       return;
     }
 
@@ -38,8 +60,10 @@ export const PostWritePage: React.FC = () => {
 
       // 작성자 확인
       if (userId && post.userId.toString() !== userId) {
-        alert('수정 권한이 없습니다.');
-        navigate('/community');
+        showWarningDialog('권한 없음', '수정 권한이 없습니다.', () => {
+          setShowDialog(false);
+          navigate('/community');
+        });
         return;
       }
 
@@ -48,8 +72,10 @@ export const PostWritePage: React.FC = () => {
       setContent(post.content);
     } catch (error) {
       console.error('게시물 조회 실패:', error);
-      alert('게시물을 찾을 수 없습니다.');
-      navigate('/community');
+      showWarningDialog('오류', '게시물을 찾을 수 없습니다.', () => {
+        setShowDialog(false);
+        navigate('/community');
+      });
     }
   };
 
@@ -57,12 +83,16 @@ export const PostWritePage: React.FC = () => {
     e.preventDefault();
 
     if (!title.trim()) {
-      alert('제목을 입력해주세요.');
+      showWarningDialog('입력 필요', '제목을 입력해주세요.', () => {
+        setShowDialog(false);
+      });
       return;
     }
 
     if (!content.trim()) {
-      alert('내용을 입력해주세요.');
+      showWarningDialog('입력 필요', '내용을 입력해주세요.', () => {
+        setShowDialog(false);
+      });
       return;
     }
 
@@ -77,16 +107,22 @@ export const PostWritePage: React.FC = () => {
 
       if (isEditMode && postId) {
         await updatePost(Number(postId), postData);
-        alert('게시물이 수정되었습니다.');
-        navigate(`/community/${postId}`);
+        showInfoDialog('수정 완료', '게시물이 수정되었습니다.', () => {
+          setShowDialog(false);
+          navigate(`/community/${postId}`);
+        });
       } else {
         const newPost = await createPost(postData);
-        alert('게시물이 작성되었습니다.');
-        navigate(`/community/${newPost.postId}`);
+        showInfoDialog('작성 완료', '게시물이 작성되었습니다.', () => {
+          setShowDialog(false);
+          navigate(`/community/${newPost.postId}`);
+        });
       }
     } catch (error) {
       console.error('게시물 저장 실패:', error);
-      alert('게시물 저장에 실패했습니다.');
+      showWarningDialog('저장 실패', '게시물 저장에 실패했습니다.', () => {
+        setShowDialog(false);
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -193,6 +229,17 @@ export const PostWritePage: React.FC = () => {
           </form>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDialog}
+        title={dialogConfig.title}
+        message={dialogConfig.message}
+        confirmText="확인"
+        onConfirm={dialogConfig.onConfirm}
+        onCancel={() => setShowDialog(false)}
+        variant={dialogConfig.variant}
+      />
     </div>
   );
 };
