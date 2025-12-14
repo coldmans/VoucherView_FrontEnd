@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Calendar, DollarSign, Trophy, Dumbbell, Volleyball, SwatchBook, Users, Bike, Activity } from 'lucide-react';
+import { Search, MapPin, Star, Trophy, Dumbbell, Volleyball, SwatchBook, Users, Bike, Activity, Navigation } from 'lucide-react';
 import { getFacilityList, FacilityDto } from '../api';
 
 export const HomePage: React.FC = () => {
@@ -176,7 +176,7 @@ export const HomePage: React.FC = () => {
             <h2 className="mb-2 md:mb-4">강력한 필터로 정확하게 검색</h2>
             <p className="text-[#8B9DA9] text-sm md:text-base">원하는 조건을 모두 설정하고 딱 맞는 시설을 찾으세요</p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
             <div className="p-4 md:p-6 bg-[#F5F7FA] rounded-2xl">
               <MapPin className="w-6 h-6 md:w-8 md:h-8 text-[#16E0B4] mb-2 md:mb-4" />
@@ -184,19 +184,19 @@ export const HomePage: React.FC = () => {
               <p className="text-[#8B9DA9] text-xs md:text-base">시 → 구<br />단계별 선택</p>
             </div>
             <div className="p-4 md:p-6 bg-[#F5F7FA] rounded-2xl">
-              <DollarSign className="w-6 h-6 md:w-8 md:h-8 text-[#16E0B4] mb-2 md:mb-4" />
-              <h4 className="mb-1 md:mb-2 text-sm md:text-base">가격대</h4>
-              <p className="text-[#8B9DA9] text-xs md:text-base">예산에 맞는<br />시설 찾기</p>
+              <Navigation className="w-6 h-6 md:w-8 md:h-8 text-[#16E0B4] mb-2 md:mb-4" />
+              <h4 className="mb-1 md:mb-2 text-sm md:text-base">거리 필터</h4>
+              <p className="text-[#8B9DA9] text-xs md:text-base">1km ~ 10km<br />위치 기반 검색</p>
             </div>
             <div className="p-4 md:p-6 bg-[#F5F7FA] rounded-2xl">
-              <Calendar className="w-6 h-6 md:w-8 md:h-8 text-[#16E0B4] mb-2 md:mb-4" />
-              <h4 className="mb-1 md:mb-2 text-sm md:text-base">시간대</h4>
-              <p className="text-[#8B9DA9] text-xs md:text-base">평일/주말<br />오전/오후/저녁</p>
+              <Star className="w-6 h-6 md:w-8 md:h-8 text-[#16E0B4] mb-2 md:mb-4" />
+              <h4 className="mb-1 md:mb-2 text-sm md:text-base">평점 필터</h4>
+              <p className="text-[#8B9DA9] text-xs md:text-base">3.5 ~ 4.5점<br />별점으로 선택</p>
             </div>
             <div className="p-4 md:p-6 bg-[#F5F7FA] rounded-2xl">
               <Activity className="w-6 h-6 md:w-8 md:h-8 text-[#16E0B4] mb-2 md:mb-4" />
-              <h4 className="mb-1 md:mb-2 text-sm md:text-base">난이도</h4>
-              <p className="text-[#8B9DA9] text-xs md:text-base">초급/중급/고급<br />수준별 선택</p>
+              <h4 className="mb-1 md:mb-2 text-sm md:text-base">종목 필터</h4>
+              <p className="text-[#8B9DA9] text-xs md:text-base">축구/헬스/수영<br />원하는 종목</p>
             </div>
           </div>
         </div>

@@ -21,6 +21,7 @@ export const SearchResultsPage: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [locationAvailable, setLocationAvailable] = useState<boolean | null>(null);
 
   const fetchFacilities = async (filters: SearchFilters, page: number = 1) => {
     try {
@@ -50,6 +51,17 @@ export const SearchResultsPage: React.FC = () => {
 
   useEffect(() => {
     fetchFacilities({});
+
+    // 위치정보 권한 확인
+    const checkLocationPermission = async () => {
+      try {
+        await getCurrentPosition();
+        setLocationAvailable(true);
+      } catch (error) {
+        setLocationAvailable(false);
+      }
+    };
+    checkLocationPermission();
   }, []);
 
   const handleSearch = (filters: SearchFilters) => {
@@ -64,9 +76,17 @@ export const SearchResultsPage: React.FC = () => {
   const handleSortChange = async (sortBy: string) => {
     // 거리순 정렬일 때 위치 정보가 필요
     if (sortBy === 'distance') {
+      if (locationAvailable === false) {
+        setToastMessage('위치 정보를 사용할 수 없어 거리순 정렬을 사용할 수 없습니다.');
+        setToastType('error');
+        setShowToast(true);
+        return;
+      }
+
       try {
         setLoading(true);
         const position = await getCurrentPosition();
+        setLocationAvailable(true);
         const updatedFilters = {
           ...currentFilters,
           sortBy,
@@ -76,7 +96,10 @@ export const SearchResultsPage: React.FC = () => {
         fetchFacilities(updatedFilters, 1);
       } catch (error: any) {
         setLoading(false);
-        alert(error.message || '위치 정보를 가져올 수 없어 거리순 정렬을 사용할 수 없습니다.');
+        setLocationAvailable(false);
+        setToastMessage(error.message || '위치 정보를 가져올 수 없어 거리순 정렬을 사용할 수 없습니다.');
+        setToastType('error');
+        setShowToast(true);
       }
     } else {
       const updatedFilters = { ...currentFilters, sortBy };
@@ -94,10 +117,18 @@ export const SearchResultsPage: React.FC = () => {
       return;
     }
 
+    if (locationAvailable === false) {
+      setToastMessage('위치 정보를 사용할 수 없어 거리 필터를 사용할 수 없습니다.');
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+
     try {
       setLoading(true);
       setSelectedRadius(radius);
       const position = await getCurrentPosition();
+      setLocationAvailable(true);
       const updatedFilters = {
         ...currentFilters,
         lat: position.lng,
@@ -108,7 +139,10 @@ export const SearchResultsPage: React.FC = () => {
     } catch (error: any) {
       setLoading(false);
       setSelectedRadius(undefined);
-      alert(error.message || '위치 정보를 가져올 수 없어 거리 필터를 사용할 수 없습니다.');
+      setLocationAvailable(false);
+      setToastMessage(error.message || '위치 정보를 가져올 수 없어 거리 필터를 사용할 수 없습니다.');
+      setToastType('error');
+      setShowToast(true);
     }
   };
 
@@ -202,8 +236,8 @@ export const SearchResultsPage: React.FC = () => {
     <div className="bg-[#F5F7FA] min-h-screen">
       <FilterBar resultCount={totalCount} onSearch={handleSearch} loading={loading} />
 
-      <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-4 md:py-8">
-        <div className="flex gap-4 md:gap-8">
+      <div className="max-w-[1440px] mx-auto px-3 md:px-8 py-4 md:py-8">
+        <div className="flex gap-3 md:gap-8">
           {/* Sidebar Filter (Optional Extended) */}
           {showSidebar && (
             <aside className="hidden lg:block w-80 flex-shrink-0">
@@ -217,7 +251,12 @@ export const SearchResultsPage: React.FC = () => {
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block font-semibold mb-3">거리</label>
+                    <label className="block font-semibold mb-3">
+                      거리
+                      {locationAvailable === false && (
+                        <span className="ml-2 text-xs text-red-500">(위치정보 없음)</span>
+                      )}
+                    </label>
                     <div className="space-y-2">
                       {[
                         { label: '1km 이내', value: 1000 },
@@ -228,11 +267,12 @@ export const SearchResultsPage: React.FC = () => {
                         <button
                           key={value}
                           onClick={() => handleDistanceFilter(value)}
+                          disabled={locationAvailable === false}
                           className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                             selectedRadius === value
                               ? 'bg-[#16E0B4] text-white'
                               : 'bg-gray-50 hover:bg-gray-100'
-                          }`}
+                          } ${locationAvailable === false ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           {label}
                         </button>
@@ -290,7 +330,9 @@ export const SearchResultsPage: React.FC = () => {
                   className="flex-1 md:flex-none px-3 md:px-4 py-2 bg-white border-2 border-[#E1E8ED] rounded-lg hover:border-[#16E0B4] focus:border-[#16E0B4] focus:outline-none cursor-pointer text-sm md:text-base"
                 >
                   <option value="rating">평점 높은순</option>
-                  <option value="distance">거리 가까운순</option>
+                  <option value="distance" disabled={locationAvailable === false}>
+                    거리 가까운순{locationAvailable === false ? ' (위치정보 없음)' : ''}
+                  </option>
                   <option value="name">이름순</option>
                 </select>
               </div>
@@ -319,7 +361,7 @@ export const SearchResultsPage: React.FC = () => {
 
             {/* Facility Grid */}
             {!loading && !error && facilities.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mb-6 md:mb-8">
                 {facilities.map((facility) => (
                   <FacilityCard
                     key={facility.facilityId}

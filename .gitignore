@@ -5,6 +5,7 @@ node_modules/
 
 # Production build
 /dist
+/dist-ssr
 /build
 
 # Testing
@@ -20,6 +21,7 @@ node_modules/
 # IDE
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
@@ -42,6 +44,11 @@ lerna-debug.log*
 *.temp
 .tmp/
 .temp/
+
+# Deployment
+.vercel/
+.netlify/
+.firebase/
 
 # OS
 Thumbs.db
