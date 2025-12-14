@@ -83,16 +83,24 @@ export const PostWritePage: React.FC = () => {
     e.preventDefault();
 
     if (!title.trim()) {
-      showWarningDialog('입력 필요', '제목을 입력해주세요.', () => {
-        setShowDialog(false);
+      setDialogConfig({
+        title: '입력 필요',
+        message: '제목을 입력해주세요.',
+        variant: 'warning',
+        onConfirm: () => setShowDialog(false),
       });
+      setShowDialog(true);
       return;
     }
 
     if (!content.trim()) {
-      showWarningDialog('입력 필요', '내용을 입력해주세요.', () => {
-        setShowDialog(false);
+      setDialogConfig({
+        title: '입력 필요',
+        message: '내용을 입력해주세요.',
+        variant: 'warning',
+        onConfirm: () => setShowDialog(false),
       });
+      setShowDialog(true);
       return;
     }
 
@@ -129,35 +137,35 @@ export const PostWritePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-[#F5F7FA] py-4 md:py-8">
+      <div className="max-w-4xl mx-auto px-3 md:px-4">
         {/* 뒤로 가기 */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#8B9DA9] hover:text-[#0D1B2A] mb-6"
+          className="flex items-center gap-2 text-[#8B9DA9] hover:text-[#0D1B2A] mb-4 md:mb-6 text-sm md:text-base"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           뒤로 가기
         </button>
 
-        <div className="bg-white rounded-xl p-8">
-          <h1 className="text-3xl font-bold text-[#0D1B2A] mb-8">
+        <div className="bg-white rounded-xl p-4 md:p-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#0D1B2A] mb-6 md:mb-8">
             {isEditMode ? '게시물 수정' : '게시물 작성'}
           </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             {/* 카테고리 선택 */}
             <div>
               <label className="block text-sm font-semibold text-[#0D1B2A] mb-3">
                 카테고리
               </label>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 md:gap-3">
                 {Object.entries(PostCategoryLabels).map(([key, label]) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setCategory(key as PostCategory)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-colors text-sm md:text-base ${
                       category === key
                         ? 'bg-[#16E0B4] text-white'
                         : 'bg-[#F5F7FA] text-[#8B9DA9] hover:bg-[#E1E8ED]'
@@ -179,10 +187,10 @@ export const PostWritePage: React.FC = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="제목을 입력하세요"
-                className="w-full p-4 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none"
+                className="w-full p-3 md:p-4 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none text-sm md:text-base"
                 maxLength={100}
               />
-              <div className="text-right text-sm text-[#8B9DA9] mt-1">
+              <div className="text-right text-xs md:text-sm text-[#8B9DA9] mt-1">
                 {title.length}/100
               </div>
             </div>
@@ -196,28 +204,28 @@ export const PostWritePage: React.FC = () => {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="내용을 입력하세요"
-                className="w-full p-4 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none resize-none"
+                className="w-full p-3 md:p-4 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none resize-none text-sm md:text-base"
                 rows={15}
                 maxLength={5000}
               />
-              <div className="text-right text-sm text-[#8B9DA9] mt-1">
+              <div className="text-right text-xs md:text-sm text-[#8B9DA9] mt-1">
                 {content.length}/5000
               </div>
             </div>
 
             {/* 버튼 */}
-            <div className="flex justify-end gap-3 pt-6">
+            <div className="flex justify-end gap-2 md:gap-3 pt-4 md:pt-6">
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="px-6 py-3 rounded-xl border-2 border-[#E1E8ED] text-[#8B9DA9] font-semibold hover:bg-[#F5F7FA] transition-colors"
+                className="px-4 md:px-6 py-2 md:py-3 rounded-xl border-2 border-[#E1E8ED] text-[#8B9DA9] font-semibold hover:bg-[#F5F7FA] transition-colors text-sm md:text-base"
               >
                 취소
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-[#16E0B4] text-white rounded-xl font-semibold hover:bg-[#12c9a0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 md:px-6 py-2 md:py-3 bg-[#16E0B4] text-white rounded-xl font-semibold hover:bg-[#12c9a0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
               >
                 {isSubmitting
                   ? '저장 중...'
@@ -239,6 +247,7 @@ export const PostWritePage: React.FC = () => {
         onConfirm={dialogConfig.onConfirm}
         onCancel={() => setShowDialog(false)}
         variant={dialogConfig.variant}
+        showCancelButton={dialogConfig.variant !== 'warning' || dialogConfig.title !== '입력 필요'}
       />
     </div>
   );

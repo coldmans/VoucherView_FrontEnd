@@ -78,18 +78,19 @@ export const CommunityPage: React.FC = () => {
   const isLoggedIn = Boolean(localStorage.getItem('token'));
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] py-8">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="min-h-screen bg-[#F5F7FA] py-4 md:py-8">
+      <div className="max-w-6xl mx-auto px-3 md:px-4">
         {/* 헤더 */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-[#0D1B2A]">커뮤니티</h1>
+        <div className="flex justify-between items-center mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#0D1B2A]">커뮤니티</h1>
           {isLoggedIn && (
             <button
               onClick={() => navigate('/community/write')}
-              className="flex items-center gap-2 px-6 py-3 bg-[#16E0B4] text-white rounded-xl font-semibold hover:bg-[#12c9a0] transition-colors"
+              className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-[#16E0B4] text-white rounded-xl font-semibold hover:bg-[#12c9a0] transition-colors text-sm md:text-base"
             >
-              <PenSquare className="w-5 h-5" />
-              글쓰기
+              <PenSquare className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline">글쓰기</span>
+              <span className="sm:hidden">글쓰기</span>
             </button>
           )}
         </div>
@@ -122,7 +123,7 @@ export const CommunityPage: React.FC = () => {
         </div>
 
         {/* 검색 및 정렬 */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#8B9DA9]" />
             <input
@@ -131,23 +132,25 @@ export const CommunityPage: React.FC = () => {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none"
+              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none text-sm md:text-base"
             />
           </div>
-          <button
-            onClick={handleSearch}
-            className="px-6 py-3 bg-[#16E0B4] text-white rounded-xl font-semibold hover:bg-[#12c9a0] transition-colors"
-          >
-            검색
-          </button>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'latest' | 'upvote')}
-            className="px-4 py-3 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none"
-          >
-            <option value="latest">최신순</option>
-            <option value="upvote">추천순</option>
-          </select>
+          <div className="flex gap-3">
+            <button
+              onClick={handleSearch}
+              className="flex-1 sm:flex-none px-6 py-3 bg-[#16E0B4] text-white rounded-xl font-semibold hover:bg-[#12c9a0] transition-colors text-sm md:text-base"
+            >
+              검색
+            </button>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'latest' | 'upvote')}
+              className="flex-1 sm:flex-none px-4 py-3 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none text-sm md:text-base"
+            >
+              <option value="latest">최신순</option>
+              <option value="upvote">추천순</option>
+            </select>
+          </div>
         </div>
 
         {/* 게시물 목록 */}
@@ -163,30 +166,30 @@ export const CommunityPage: React.FC = () => {
               <div
                 key={post.postId}
                 onClick={() => navigate(`/community/${post.postId}`)}
-                className="bg-white rounded-xl p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                className="bg-white rounded-xl p-4 md:p-6 hover:shadow-lg transition-shadow cursor-pointer"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 bg-[#16E0B4]/10 text-[#16E0B4] text-sm font-medium rounded-lg">
+                <div className="flex flex-col sm:flex-row items-start justify-between mb-3 gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
+                    <span className="px-3 py-1 bg-[#16E0B4]/10 text-[#16E0B4] text-xs md:text-sm font-medium rounded-lg w-fit">
                       {PostCategoryLabels[post.category]}
                     </span>
-                    <h3 className="text-lg font-bold text-[#0D1B2A]">
+                    <h3 className="text-base md:text-lg font-bold text-[#0D1B2A]">
                       {post.title}
                     </h3>
                   </div>
                 </div>
 
-                <p className="text-[#8B9DA9] mb-4 line-clamp-2">
+                <p className="text-[#8B9DA9] mb-4 line-clamp-2 text-sm md:text-base">
                   {post.content}
                 </p>
 
-                <div className="flex items-center justify-between text-sm text-[#8B9DA9]">
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs md:text-sm text-[#8B9DA9]">
+                  <div className="flex items-center gap-3 md:gap-4">
                     <span>{post.nickname}</span>
                     <span>{formatDate(post.createdAt)}</span>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 md:gap-4">
                     <div className="flex items-center gap-1">
                       <ThumbsUp className="w-4 h-4" />
                       <span>{post.upvoteCount}</span>
@@ -208,11 +211,11 @@ export const CommunityPage: React.FC = () => {
 
         {/* 페이지네이션 */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-8">
+          <div className="flex justify-center items-center gap-1 md:gap-2 mt-6 md:mt-8">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg bg-white text-[#8B9DA9] hover:bg-[#E1E8ED] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 md:px-4 py-2 rounded-lg bg-white text-[#8B9DA9] hover:bg-[#E1E8ED] disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
             >
               이전
             </button>
@@ -222,7 +225,7 @@ export const CommunityPage: React.FC = () => {
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
-                  className={`px-4 py-2 rounded-lg font-medium ${
+                  className={`px-3 md:px-4 py-2 rounded-lg font-medium text-sm md:text-base ${
                     currentPage === page
                       ? 'bg-[#16E0B4] text-white'
                       : 'bg-white text-[#8B9DA9] hover:bg-[#E1E8ED]'
@@ -236,7 +239,7 @@ export const CommunityPage: React.FC = () => {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === pagination.totalPages}
-              className="px-4 py-2 rounded-lg bg-white text-[#8B9DA9] hover:bg-[#E1E8ED] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 md:px-4 py-2 rounded-lg bg-white text-[#8B9DA9] hover:bg-[#E1E8ED] disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
             >
               다음
             </button>

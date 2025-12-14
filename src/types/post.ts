@@ -15,8 +15,8 @@ export const PostCategoryLabels: Record<PostCategory, string> = {
 };
 
 export enum VoteType {
-  UPVOTE = 'UPVOTE',
-  DOWNVOTE = 'DOWNVOTE',
+  UP = 'UP',
+  DOWN = 'DOWN',
 }
 
 export interface PostDto {

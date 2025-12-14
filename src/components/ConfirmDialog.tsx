@@ -8,8 +8,9 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   variant?: 'danger' | 'warning' | 'info';
+  showCancelButton?: boolean;
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -21,6 +22,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   onCancel,
   variant = 'warning',
+  showCancelButton = true,
 }) => {
   if (!isOpen) return null;
 
@@ -46,7 +48,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-        onClick={onCancel}
+        onClick={showCancelButton ? onCancel : undefined}
       >
         {/* Dialog */}
         <div
@@ -72,16 +74,18 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <p className="text-[#8B9DA9] text-center mb-6">{message}</p>
 
           {/* Buttons */}
-          <div className="flex gap-3">
-            <button
-              onClick={onCancel}
-              className="flex-1 px-6 py-3 rounded-xl border-2 border-[#E1E8ED] text-[#8B9DA9] font-semibold hover:bg-[#F5F7FA] transition-colors"
-            >
-              {cancelText}
-            </button>
+          <div className={`flex gap-3 ${!showCancelButton ? 'justify-center' : ''}`}>
+            {showCancelButton && (
+              <button
+                onClick={onCancel}
+                className="flex-1 px-6 py-3 rounded-xl border-2 border-[#E1E8ED] text-[#8B9DA9] font-semibold hover:bg-[#F5F7FA] transition-colors"
+              >
+                {cancelText}
+              </button>
+            )}
             <button
               onClick={onConfirm}
-              className={`flex-1 px-6 py-3 rounded-xl text-white font-semibold transition-colors ${colors.confirmBg}`}
+              className={`${showCancelButton ? 'flex-1' : 'px-12'} px-6 py-3 rounded-xl text-white font-semibold transition-colors ${colors.confirmBg}`}
             >
               {confirmText}
             </button>

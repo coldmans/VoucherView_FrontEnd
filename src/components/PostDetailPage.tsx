@@ -123,7 +123,13 @@ export const PostDetailPage: React.FC = () => {
     }
 
     if (!newComment.trim()) {
-      showAlert('입력 필요', '댓글 내용을 입력해주세요.');
+      setInfoDialogConfig({
+        title: '입력 필요',
+        message: '댓글 내용을 입력해주세요.',
+        variant: 'warning',
+        onConfirm: () => setShowInfoDialog(false),
+      });
+      setShowInfoDialog(true);
       return;
     }
 
@@ -145,7 +151,13 @@ export const PostDetailPage: React.FC = () => {
 
   const handleSaveComment = async (commentId: number) => {
     if (!editingContent.trim()) {
-      showAlert('입력 필요', '댓글 내용을 입력해주세요.');
+      setInfoDialogConfig({
+        title: '입력 필요',
+        message: '댓글 내용을 입력해주세요.',
+        variant: 'warning',
+        onConfirm: () => setShowInfoDialog(false),
+      });
+      setShowInfoDialog(true);
       return;
     }
 
@@ -186,28 +198,28 @@ export const PostDetailPage: React.FC = () => {
   const isAuthor = userId && post.userId.toString() === userId;
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-[#F5F7FA] py-4 md:py-8">
+      <div className="max-w-4xl mx-auto px-3 md:px-4">
         {/* 뒤로 가기 */}
         <button
           onClick={() => navigate('/community')}
-          className="flex items-center gap-2 text-[#8B9DA9] hover:text-[#0D1B2A] mb-6"
+          className="flex items-center gap-2 text-[#8B9DA9] hover:text-[#0D1B2A] mb-4 md:mb-6 text-sm md:text-base"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           목록으로
         </button>
 
         {/* 게시물 내용 */}
-        <div className="bg-white rounded-xl p-8 mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <span className="inline-block px-3 py-1 bg-[#16E0B4]/10 text-[#16E0B4] text-sm font-medium rounded-lg mb-3">
+        <div className="bg-white rounded-xl p-4 md:p-8 mb-4 md:mb-6">
+          <div className="flex flex-col md:flex-row items-start justify-between mb-4 gap-4">
+            <div className="w-full">
+              <span className="inline-block px-3 py-1 bg-[#16E0B4]/10 text-[#16E0B4] text-xs md:text-sm font-medium rounded-lg mb-3">
                 {PostCategoryLabels[post.category]}
               </span>
-              <h1 className="text-3xl font-bold text-[#0D1B2A] mb-4">
+              <h1 className="text-xl md:text-3xl font-bold text-[#0D1B2A] mb-3 md:mb-4">
                 {post.title}
               </h1>
-              <div className="flex items-center gap-4 text-sm text-[#8B9DA9]">
+              <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-[#8B9DA9]">
                 <span>{post.nickname}</span>
                 <span>{formatDateTime(post.createdAt)}</span>
                 {post.updatedAt !== post.createdAt && (
@@ -235,51 +247,51 @@ export const PostDetailPage: React.FC = () => {
           </div>
 
           <div className="prose max-w-none">
-            <p className="text-[#0D1B2A] whitespace-pre-wrap">{post.content}</p>
+            <p className="text-[#0D1B2A] whitespace-pre-wrap text-sm md:text-base">{post.content}</p>
           </div>
 
           {/* 추천/비추천 */}
-          <div className="flex items-center gap-4 mt-8 pt-6 border-t border-[#E1E8ED]">
+          <div className="flex items-center gap-3 md:gap-4 mt-6 md:mt-8 pt-4 md:pt-6 border-t border-[#E1E8ED]">
             <button
-              onClick={() => handleVote(VoteType.UPVOTE)}
-              className="flex items-center gap-2 px-6 py-3 bg-[#16E0B4]/10 text-[#16E0B4] rounded-xl hover:bg-[#16E0B4]/20 transition-colors"
+              onClick={() => handleVote(VoteType.UP)}
+              className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-[#16E0B4]/10 text-[#16E0B4] rounded-xl hover:bg-[#16E0B4]/20 transition-colors text-sm md:text-base"
             >
-              <ThumbsUp className="w-5 h-5" />
+              <ThumbsUp className="w-4 h-4 md:w-5 md:h-5" />
               <span className="font-semibold">{post.upvoteCount}</span>
             </button>
             <button
-              onClick={() => handleVote(VoteType.DOWNVOTE)}
-              className="flex items-center gap-2 px-6 py-3 bg-[#8B9DA9]/10 text-[#8B9DA9] rounded-xl hover:bg-[#8B9DA9]/20 transition-colors"
+              onClick={() => handleVote(VoteType.DOWN)}
+              className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-[#8B9DA9]/10 text-[#8B9DA9] rounded-xl hover:bg-[#8B9DA9]/20 transition-colors text-sm md:text-base"
             >
-              <ThumbsDown className="w-5 h-5" />
+              <ThumbsDown className="w-4 h-4 md:w-5 md:h-5" />
               <span className="font-semibold">{post.downvoteCount}</span>
             </button>
           </div>
         </div>
 
         {/* 댓글 섹션 */}
-        <div className="bg-white rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <MessageSquare className="w-5 h-5 text-[#16E0B4]" />
-            <h2 className="text-xl font-bold text-[#0D1B2A]">
+        <div className="bg-white rounded-xl p-4 md:p-6">
+          <div className="flex items-center gap-2 mb-4 md:mb-6">
+            <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-[#16E0B4]" />
+            <h2 className="text-lg md:text-xl font-bold text-[#0D1B2A]">
               댓글 {post.commentCount}
             </h2>
           </div>
 
           {/* 댓글 작성 */}
           {isLoggedIn && (
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="댓글을 입력하세요"
-                className="w-full p-4 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none resize-none"
+                className="w-full p-3 md:p-4 rounded-xl border-2 border-[#E1E8ED] focus:border-[#16E0B4] focus:outline-none resize-none text-sm md:text-base"
                 rows={3}
               />
               <div className="flex justify-end mt-2">
                 <button
                   onClick={handleCreateComment}
-                  className="px-6 py-2 bg-[#16E0B4] text-white rounded-xl font-semibold hover:bg-[#12c9a0] transition-colors"
+                  className="px-4 md:px-6 py-2 bg-[#16E0B4] text-white rounded-xl font-semibold hover:bg-[#12c9a0] transition-colors text-sm md:text-base"
                 >
                   댓글 작성
                 </button>
@@ -404,6 +416,7 @@ export const PostDetailPage: React.FC = () => {
         onConfirm={infoDialogConfig.onConfirm}
         onCancel={() => setShowInfoDialog(false)}
         variant={infoDialogConfig.variant}
+        showCancelButton={infoDialogConfig.title !== '입력 필요'}
       />
     </div>
   );
