@@ -1,4 +1,5 @@
 import { apiClient } from './apiClient';
+import { API_BASE_URL } from '../config/api';
 
 export interface DirectionsResponse {
   code: number;
@@ -43,7 +44,7 @@ export const getDirections = async (
 ): Promise<DirectionsResponse> => {
   const { start, goal, option = 'traoptimal' } = params;
 
-  const url = `http://localhost:8080/api/directions/driving?start=${start}&goal=${goal}&option=${option}`;
+  const url = `${API_BASE_URL}/api/directions/driving?start=${start}&goal=${goal}&option=${option}`;
 
   const response = await fetch(url, {
     method: 'GET',

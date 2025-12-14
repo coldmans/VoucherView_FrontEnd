@@ -45,28 +45,28 @@ export const FacilityCard: React.FC<FacilityCardProps> = ({
   };
 
   return (
-    <div 
-      className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border-2 border-[#E1E8ED] hover:border-[#16E0B4]"
+    <div
+      className="bg-white rounded-xl md:rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border-2 border-[#E1E8ED] hover:border-[#16E0B4]"
       onClick={onClick}
     >
       {/* Content */}
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="inline-block px-3 py-1 rounded-full text-sm" style={{ backgroundColor: color + '20', color }}>
+      <div className="p-4 md:p-6">
+        <div className="flex items-start justify-between mb-3 md:mb-4">
+          <div className="inline-block px-2 md:px-3 py-1 rounded-full text-xs md:text-sm" style={{ backgroundColor: color + '20', color }}>
             {sport}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <div className="flex items-center gap-1">
-              <span className="text-[#FFA726] text-lg">★</span>
-              <span className="font-semibold">{rating}</span>
-              <span className="text-[#8B9DA9]">({reviewCount})</span>
+              <span className="text-[#FFA726] text-base md:text-lg">★</span>
+              <span className="font-semibold text-sm md:text-base">{rating}</span>
+              <span className="text-[#8B9DA9] text-xs md:text-sm">({reviewCount})</span>
             </div>
             <button
-              className="w-8 h-8 bg-[#F5F7FA] rounded-full flex items-center justify-center hover:bg-[#e5e7ea] transition-colors"
+              className="w-7 h-7 md:w-8 md:h-8 bg-[#F5F7FA] rounded-full flex items-center justify-center hover:bg-[#e5e7ea] transition-colors"
               onClick={handleFavoriteClick}
             >
               <Heart
-                className={`w-4 h-4 transition-colors ${
+                className={`w-3.5 h-3.5 md:w-4 md:h-4 transition-colors ${
                   localFavorite ? 'text-red-500 fill-red-500' : 'text-[#8B9DA9]'
                 }`}
               />
@@ -74,26 +74,26 @@ export const FacilityCard: React.FC<FacilityCardProps> = ({
           </div>
         </div>
 
-        <h4 className="mb-2">{name}</h4>
-        
-        <div className="flex items-start gap-2 text-[#8B9DA9] mb-4">
-          <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
-          <span className="text-sm">{address}</span>
+        <h4 className="mb-2 text-base md:text-lg">{name}</h4>
+
+        <div className="flex items-start gap-2 text-[#8B9DA9] mb-3 md:mb-4">
+          <MapPin className="w-4 h-4 mt-0.5 md:mt-1 flex-shrink-0" />
+          <span className="text-xs md:text-sm leading-relaxed">{address}</span>
         </div>
 
         {/* Facilities Icons */}
         {facilities.length > 0 && (
-          <div className="flex items-center gap-2 pt-4 border-t border-[#E1E8ED]">
+          <div className="flex flex-wrap items-center gap-1.5 md:gap-2 pt-3 md:pt-4 border-t border-[#E1E8ED]">
             {facilities.map((facility) => {
               const Icon = facilityIcons[facility];
               return Icon ? (
                 <div
                   key={facility}
-                  className="flex items-center gap-1 px-3 py-1 bg-[#F5F7FA] rounded-lg"
+                  className="flex items-center gap-1 px-2 md:px-3 py-1 bg-[#F5F7FA] rounded-lg"
                   title={facility}
                 >
-                  <Icon className="w-4 h-4 text-[#8B9DA9]" />
-                  <span className="text-xs text-[#8B9DA9]">{facility}</span>
+                  <Icon className="w-3 h-3 md:w-4 md:h-4 text-[#8B9DA9]" />
+                  <span className="text-[10px] md:text-xs text-[#8B9DA9]">{facility}</span>
                 </div>
               ) : null;
             })}
