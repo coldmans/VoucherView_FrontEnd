@@ -1,5 +1,5 @@
 # Build stage
-FROM --platform=linux/amd64 node:lts-alpine AS build
+FROM node:lts-alpine AS build
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM --platform=linux/amd64 nginx:alpine
+FROM nginx:alpine
 
 # nginx 설정 파일 복사
 COPY nginx.conf /etc/nginx/nginx.conf
