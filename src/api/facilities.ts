@@ -30,6 +30,15 @@ export const getFacilityList = async (
 };
 
 /**
+ * 인기 시설 Top3 조회 (찜이 많은 순)
+ * @returns 인기 시설 Top3과 페이지네이션 정보
+ */
+export const getFavoriteFacilities = async (): Promise<FacilityListResponse> => {
+  // 공개 API이므로 인증 불필요
+  return apiClient.get<FacilityListResponse>(API_ENDPOINTS.FAVORITE_FACILITIES, undefined, false);
+};
+
+/**
  * 특정 시설 상세 정보 조회
  * @param facilityId 시설 ID
  * @returns 시설 상세 정보

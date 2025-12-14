@@ -1,6 +1,7 @@
 // Facility API
 export {
   getFacilityList,
+  getFavoriteFacilities,
   getFacilityById,
   getFacilityCourses,
 } from './facilities';

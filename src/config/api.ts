@@ -3,6 +3,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
 export const API_ENDPOINTS = {
   // Facility endpoints
   FACILITIES: '/api/facilities',
+  FAVORITE_FACILITIES: '/api/facilities/favorite',
   FACILITY_BY_ID: (id: number) => `/api/facilities/${id}`,
   FACILITY_COURSES: (id: number) => `/api/facilities/${id}/courses`,
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Star, Trophy, Dumbbell, Volleyball, SwatchBook, Users, Bike, Activity, Navigation } from 'lucide-react';
-import { getFacilityList, FacilityDto } from '../api';
+import { getFavoriteFacilities, FacilityDto } from '../api';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     const fetchFeaturedFacilities = async () => {
       try {
-        const response = await getFacilityList({ page: 1, limit: 3, sortBy: 'rating' });
+        const response = await getFavoriteFacilities();
         setFeaturedFacilities(response.facilityList);
       } catch (error) {
         console.error('인기 시설 불러오기 실패:', error);
@@ -126,7 +126,7 @@ export const HomePage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 md:mb-12 gap-4">
             <div>
               <h2 className="mb-1 md:mb-2">인기 시설</h2>
-              <p className="text-[#8B9DA9] text-sm md:text-base">많은 학부모님들이 선택한 시설입니다</p>
+              <p className="text-[#8B9DA9] text-sm md:text-base">많은 학부모님들이 찜한 시설입니다</p>
             </div>
             <button 
               onClick={() => navigate('/search')}
